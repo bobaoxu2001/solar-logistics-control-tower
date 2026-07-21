@@ -20,6 +20,7 @@
 - [ ] Repository topics added
 - [ ] Code license selected without inventing dataset reuse terms
 - [ ] README images visually confirmed on GitHub after first push
+- [ ] CI workflow passing
 - [ ] Release tag `v1.0.0` created
 - [ ] GitHub release created from the reviewed commit
 - [ ] Final public GitHub URL added to resume and portfolio

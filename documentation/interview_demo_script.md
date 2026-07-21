@@ -40,9 +40,9 @@ Use the repository in this order: README → architecture diagram → Executive 
 ## Minute 5–6 — Data-quality framework
 
 - **What to show:** `dashboard/screenshots/06_data_quality_controls.png`.
-- **What to say:** “Twenty-five rules generated 4,015 detections. I join detected record IDs to the 2,220-record manifest by exception type and calculate true positives, false positives, and false negatives. Overall recall is 99.37% and critical recall is 100%. Precision is 54.94% because the rules also detect legitimate shared-card spillover and overlapping operational issues beyond the injected rows.”
+- **What to say:** “This is rule-based control detection, not a machine-learning classifier. Twenty-five SQL rules generated 4,015 detections. I join detected record IDs to the 2,220-record injected manifest by exception type and calculate true positives, false positives, and false negatives. Overall recall is 99.37% and critical recall is 100%. Precision against the narrower manifest is 54.94% because the rules also detect valid downstream shared-card spillover and overlapping operational issues beyond the directly injected rows.”
 - **Likely question:** “Is 54.94% precision poor performance?”
-- **Strong answer:** “It would be concerning without diagnosis. Here, the extra detections are traceable: shared rate-card changes affect later invoices and one record can trigger multiple valid controls. I keep those findings visible and would use resolution outcomes to tune rules in production.”
+- **Strong answer:** “It would be concerning without diagnosis. Here, the extra detections are traceable: shared rate-card changes affect additional invoices and one underlying issue can trigger multiple valid business controls. They count as false positives against the narrow injected manifest, but remain legitimate review items. I keep them visible instead of tuning for an artificial score; business review is still required before calling any item a confirmed billing error.”
 
 ## Minute 6–7 — Carrier and lane analysis
 

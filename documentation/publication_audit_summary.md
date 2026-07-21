@@ -1,6 +1,6 @@
 # Publication Audit Summary
 
-**Final result: PASS.** The repository is portable and locally ready for a public-portfolio review. No remote, push, release, or account change was performed.
+**Final result: PASS.** The repository is portable and locally ready for a public-portfolio review. This local audit does not change repository visibility or rewrite Git history.
 
 ## Automated results
 
@@ -25,15 +25,15 @@
 - **High-confidence secret issues found:** 0 in current tracked text; 0 in existing commit contents.
 - **Personal contact patterns found:** 0 in the publication file set; 0 in existing commit contents (Git author metadata is reported separately).
 - **Required assets found:** 6 dashboard PNGs, 3 diagram PNGs, and the Excel KPI workbook.
-- **Final test count:** 130 tests collected.
+- **Final test count:** 139 tests collected.
 - **Git identity metadata:** 2 distinct author names and 2 distinct author email addresses exist in commit metadata. History was not rewritten.
 - **Credential handling:** local PostgreSQL examples use an explicit change-me placeholder; `.env` and credential-file patterns are ignored.
 - **Personal data:** no personal contact details were found in tracked file content, and the KPI workbook core metadata contains no email or local-path marker. Simulated operational names are generic fictional organizations and functional roles.
 
 ## Repository size
 
-- Publication file set, excluding this generated summary: **5.37 MiB**.
-- Local checkout excluding `.git` and tool caches, including reproducible ignored data: **132.47 MiB**.
+- Publication file set, excluding this generated summary: **5.38 MiB**.
+- Local checkout excluding `.git` and tool caches, including reproducible ignored data: **132.48 MiB**.
 - Raw downloaded dataset, ignored by Git: **3.61 MiB**.
 - Generated dashboard/chart/diagram assets: **2.14 MiB**.
 - Excel KPI workbook: **2.51 MiB**.
@@ -63,25 +63,23 @@ The largest publication file is the Excel KPI workbook, which remains small enou
 | `excel/` | 2.51 MiB |
 | `documentation/` | 1.21 MiB |
 | `dashboard/` | 1.05 MiB |
-| `src/` | 324.54 KiB |
+| `src/` | 324.41 KiB |
 | `data/` | 118.19 KiB |
 | `sql/` | 91.04 KiB |
-| `tests/` | 49.02 KiB |
+| `tests/` | 52.75 KiB |
 | `config/` | 20.33 KiB |
-| `(root files)` | 15.12 KiB |
+| `(root files)` | 19.41 KiB |
+| `.github/` | 2.56 KiB |
 
 ## Data attribution and disclosure
 
-The README identifies the USAID SCMS shipment-history source, offline portal identifier, public mirrors, and pinned SHA-256. It distinguishes public shipment patterns from derived solar mapping and simulated enterprise/finance records, states that modeled exposure is not real corporate loss, and includes a non-affiliation statement. Because exact reuse terms were not independently verified from repository evidence, users are directed to review the original source terms before redistribution.
+The README and `DATA_NOTICE.md` identify the USAID SCMS shipment-history source, offline portal identifier, public mirrors, and pinned SHA-256. They distinguish public shipment patterns from derived solar mapping and simulated enterprise/finance records, state that modeled exposure is not real corporate loss, and include a non-affiliation statement. Original project code and documentation use the MIT License; the external dataset is explicitly excluded because its exact reuse terms were not independently verified from repository evidence.
 
 ## Manual GitHub steps remaining
 
-- Confirm or create the intended public repository and remote.
 - Add the suggested description, About text, and topics from `documentation/github_metadata.md`.
-- Choose a code license before public release; keep it distinct from the unverified dataset reuse terms.
-- Push only after reviewing this commit and confirming the remote target.
-- Confirm README images and relative links on GitHub.
-- Create tag `v1.0.0` and the suggested release only after publication review.
+- Confirm README images, relative links, and the CI badge on GitHub.
+- Create tag `v1.0.0` and the suggested GitHub release after publication review.
 - Add the final public URL to the resume and portfolio.
 
 ## Exact rerun commands

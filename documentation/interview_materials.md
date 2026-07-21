@@ -25,7 +25,7 @@ The clean relational baseline passes 60 checks before I inject 2,220 controlled 
 
 ### 1. How did you validate exception detection?
 
-I matched detected record IDs to the injected manifest by exception type and calculated TP, FP, FN, precision, recall, and F1. The pipeline gates at 95% overall recall and 100% critical recall and retains legitimate overlaps.
+This is a rule-based control system, not a machine-learning classifier. I matched detected record IDs to the intentionally injected manifest by exception type and calculated TP, FP, FN, precision, recall, and F1. The pipeline gates at 95% overall recall and 100% critical recall and retains legitimate overlaps for business review.
 
 ### 2. How does the freight calculation work?
 
@@ -110,7 +110,7 @@ Carrier contracts, invoices, approvals, and accruals are ordinarily confidential
 
 ### Why is precision only 54.94%?
 
-The manifest measures injected records, but the rules also detect additional legitimate issues. Shared rate-card changes affect later invoices, and one record can trigger overlapping controls. I disclose that spillover and would use production resolution outcomes to tune rule specificity.
+Precision is measured against the injected manifest, which records the rows directly modified during exception injection. Some modifications—especially shared rate-card changes—create valid downstream exceptions on additional invoices that were not individually listed in the manifest. Overlapping business-control rules can also flag the same underlying issue at another operational grain. The controls detected those consequences, so they count as false positives against the narrow truth set even though they are legitimate review items. I kept them visible and documented the distinction rather than tuning the rules to produce an artificially high precision score. This does not mean every extra detection is a confirmed billing error; each requires business review.
 
 ### What does 99.37% recall mean here?
 

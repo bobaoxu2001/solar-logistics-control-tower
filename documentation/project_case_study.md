@@ -46,7 +46,9 @@ Carrier scores balance OTIF, transit reliability, cost/kg, invoice accuracy, POD
 
 ### Manifest-backed data-quality framework
 
-Twenty-five SQL rules generate record-level detections with severity, owner, SLA, and source layer. Matching those IDs to the injected manifest produces true positives, false positives, and false negatives by exception type. This makes detection quality testable and exposes overlaps rather than suppressing them.
+Twenty-five SQL rules generate record-level detections with severity, owner, SLA, and source layer. This is rule-based control detection, not a machine-learning classifier. Matching those IDs to the manifest of intentionally injected exceptions produces true positives, false positives, and false negatives by exception type. This makes detection quality testable and exposes overlaps rather than suppressing them.
+
+The controls achieved 99.37% recall, 100% critical-exception recall, and 54.94% precision against the injected manifest. Precision is lower because shared rate-card changes create operationally valid downstream exceptions on additional invoices, while overlapping business-control rules can flag consequences not individually represented in the narrow truth set. Those detections count as false positives against the manifest but remain legitimate review items. They were retained rather than artificially suppressed, and none is treated automatically as a confirmed billing error without business review.
 
 ## Results
 

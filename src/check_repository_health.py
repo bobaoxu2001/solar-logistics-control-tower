@@ -56,6 +56,7 @@ REQUIRED_DIAGRAMS = [
     "data_quality_validation.png",
 ]
 REQUIRED_FILES = [
+    ".github/workflows/tests.yml", "LICENSE", "DATA_NOTICE.md",
     "README.md", "PORTFOLIO_GUIDE.md", "dashboard/measures.dax",
     "dashboard/dashboard_metric_reconciliation.csv",
     "documentation/phase2_summary.md", "documentation/phase3_summary.md",

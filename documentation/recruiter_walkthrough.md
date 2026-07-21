@@ -27,6 +27,8 @@ Python, SQL, SQLite, PostgreSQL-compatible analytics, Power BI design and DAX, E
 
 The financial exposure is modeled within simulated enterprise records; it is not a claim of real savings.
 
+The data-quality controls use rule-based deterministic SQL, not a machine-learning classifier. They achieved 99.37% recall, 100% critical-exception recall, and 54.94% precision against the intentionally injected manifest. The precision figure reflects valid downstream rate-card spillover and overlapping control findings outside the narrower truth set; those items remain visible for business review and are not automatically treated as confirmed billing errors.
+
 ## Three findings
 
 1. Monthly OTIF fell 45.70 percentage points in the strongest deterioration case.

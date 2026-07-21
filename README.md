@@ -1,5 +1,7 @@
 # Solar Logistics Control Tower & Freight Audit System
 
+[![Portfolio CI](https://github.com/bobaoxu2001/solar-logistics-control-tower/actions/workflows/tests.yml/badge.svg)](https://github.com/bobaoxu2001/solar-logistics-control-tower/actions/workflows/tests.yml) [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 A portfolio logistics-control system that combines public shipment history with simulated ERP, TMS, WMS, carrier-contract, freight-settlement, and finance data to demonstrate operational reporting, freight controls, and management decision support.
 
 > **Data disclosure.** This project combines real public shipment history with deterministically simulated ERP, TMS, WMS, freight-settlement, and finance records. The simulated records represent information that would ordinarily be confidential.
@@ -77,7 +79,7 @@ The expected-charge engine selects an effective carrier-lane rate, enforces the 
 
 ![Data-quality manifest validation workflow](documentation/diagrams/data_quality_validation.png)
 
-The framework reconciles detected record IDs to 2,220 manifested exceptions by type. It achieved 99.37% overall recall and 100% critical recall. Precision is 54.94% because shared rate-card spillover and overlapping control rules expose additional legitimate issues beyond the injected manifest; those detections are not hidden or forced into the truth set.
+This is rule-based control detection, not a machine-learning classifier. The framework reconciles detected record IDs to a manifest of 2,220 intentionally injected exceptions by type. It achieved 99.37% overall recall and 100% critical-exception recall. Precision against that narrow manifest is 54.94% because the SQL rules also identify operationally valid downstream control issues that were not individually represented in the injected truth set, particularly shared rate-card spillover and overlapping business-control rules. Those extra detections count as false positives against the manifest, but they are retained as review items rather than artificially suppressed. They require business review and are not automatically confirmed billing errors.
 
 ## Root-cause findings
 
@@ -160,6 +162,10 @@ python3 src/run_phase4.py
 - Expired-rate invoice recall remains about 92% because 12 selected invoices shipped before the single altered expiry of a shared card.
 - SQLite is live-tested. PostgreSQL-compatible SQL has been hardened but was not executed against a live PostgreSQL server in this environment.
 - Static dashboard images are source-backed design mockups. Power BI Desktop assembly, interactive filtering, accessibility review, refresh credentials, and publication remain manual work. No `.pbix` is fabricated.
+
+## License and data notice
+
+Original project code and documentation are licensed under the [MIT License](LICENSE). External public-source data is not covered by the MIT License; review the [Data and third-party content notice](DATA_NOTICE.md) and the original source terms before downloading, redistributing, or reusing source data.
 
 ## Interview materials
 
