@@ -32,7 +32,7 @@
 
 ## Repository size
 
-- Publication file set, excluding this generated summary: **5.38 MiB**.
+- Publication file set, excluding this generated summary: **5.39 MiB**.
 - Local checkout excluding `.git` and tool caches, including reproducible ignored data: **132.48 MiB**.
 - Raw downloaded dataset, ignored by Git: **3.61 MiB**.
 - Generated dashboard/chart/diagram assets: **2.14 MiB**.
@@ -65,7 +65,7 @@ The largest publication file is the Excel KPI workbook, which remains small enou
 | `dashboard/` | 1.05 MiB |
 | `src/` | 324.81 KiB |
 | `data/` | 118.19 KiB |
-| `sql/` | 91.05 KiB |
+| `sql/` | 91.33 KiB |
 | `tests/` | 52.93 KiB |
 | `config/` | 20.33 KiB |
 | `(root files)` | 19.49 KiB |

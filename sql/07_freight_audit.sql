@@ -22,13 +22,17 @@ SELECT s.shipment_id, s.carrier_id, s.lane_id, s.actual_ship_date, s.shipment_we
             ELSE 'MISSING_RATE' END AS rate_status,
        CASE WHEN rc.rate_id IS NULL THEN NULL
             WHEN rc.rate_per_kg * s.shipment_weight_kg > rc.minimum_charge
-                 THEN ROUND(rc.rate_per_kg * s.shipment_weight_kg, 2)
+                 -- Convert positive currency to integer cents explicitly so
+                 -- SQLite/libc ROUND differences cannot move a cross-platform
+                 -- result by one cent.
+                 THEN CAST(rc.rate_per_kg * s.shipment_weight_kg * 100
+                           + 0.5000001 AS BIGINT) / 100.0
             ELSE rc.minimum_charge END AS expected_base,
        CASE WHEN rc.rate_id IS NULL THEN NULL
-            ELSE ROUND(
+            ELSE CAST((
                  (CASE WHEN rc.rate_per_kg * s.shipment_weight_kg > rc.minimum_charge
                        THEN rc.rate_per_kg * s.shipment_weight_kg ELSE rc.minimum_charge END)
-                 * rc.fuel_percentage, 2) END AS expected_fuel
+                 * rc.fuel_percentage) * 100 + 0.5000001 AS BIGINT) / 100.0 END AS expected_fuel
 FROM sunlog.fact_shipment s
 LEFT JOIN sunlog.dim_rate_card rc
        ON rc.carrier_id = s.carrier_id AND rc.lane_id = s.lane_id
@@ -146,8 +150,8 @@ GROUP BY invoice_carrier;
 DROP VIEW IF EXISTS sunlog.v_audit_recoverable_summary;
 CREATE VIEW sunlog.v_audit_recoverable_summary AS
 SELECT
-  (SELECT COALESCE(SUM(CAST(ROUND((CASE WHEN is_material = 1 AND variance_amount > 0 THEN variance_amount ELSE 0 END)
-                                        * 100, 0) AS BIGINT)),0) / 100.0
+  (SELECT COALESCE(SUM(CAST((CASE WHEN is_material = 1 AND variance_amount > 0 THEN variance_amount ELSE 0 END)
+                                  * 100 + 0.01 AS BIGINT)),0) / 100.0
      FROM sunlog.v_freight_audit
      WHERE audit_status IN ('POTENTIAL_OVERCHARGE','INCORRECT_FUEL_SURCHARGE')) AS overcharge_recoverable,
   (SELECT COALESCE(SUM(CAST(invoiced_total * 100 + 0.01 AS BIGINT)),0) / 100.0
