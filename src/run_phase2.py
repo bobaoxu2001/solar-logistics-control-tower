@@ -24,9 +24,12 @@ import generate_master_data
 import generate_enterprise_data
 import validate_phase2
 import inject_exceptions
+import load_database
 import load_phase2
 import build_phase2_docs
-from common import DATA_PROCESSED, DOCS_DIR, PROJECT_ROOT, get_logger
+from sqlalchemy import create_engine, inspect
+
+from common import DATA_PROCESSED, DOCS_DIR, PROJECT_ROOT, database_url, get_logger, load_config
 
 log = get_logger("run_phase2")
 CLEAN = DATA_PROCESSED / "clean"
@@ -104,8 +107,15 @@ def write_summary():
 
 def main() -> int:
     if not (DATA_PROCESSED / "stg_shipment.csv").exists():
-        log.error("Phase 1 output missing (stg_shipment.csv). Run Phase 1 first.")
+        log.error("Phase 1 output missing (stg_shipment.csv). Run Phase 1 first "
+                  "(python src/clean_shipments.py).")
         return 1
+
+    # Ensure the Phase 1 staging table is present in the DB (fact_shipment's
+    # lineage FK targets it). Idempotent — reloads stg_shipment from the CSV.
+    engine = create_engine(database_url(load_config()))
+    if "stg_shipment" not in inspect(engine).get_table_names():
+        _step("Load Phase 1 staging into database", load_database.main)
 
     _step("Generate master data", generate_master_data.main)
     _step("Generate enterprise facts", generate_enterprise_data.main)
