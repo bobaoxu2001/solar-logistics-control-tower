@@ -16,7 +16,7 @@ import re
 
 import numpy as np
 import pandas as pd
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 
 from common import SQL_DIR, load_config
 
@@ -152,23 +152,89 @@ def adapt_sql_for_sqlite(sql: str, schema: str) -> str:
     return sql
 
 
+def split_sql_statements(sql: str) -> list[str]:
+    """Split SQL on statement semicolons without corrupting quoted text.
+
+    Handles SQL-standard escaped single quotes (``''``) and ``--`` line
+    comments.  This deliberately stays small and portable: the project SQL
+    does not use dollar-quoted functions or procedural blocks.
+    """
+    statements: list[str] = []
+    buf: list[str] = []
+    in_quote = False
+    in_line_comment = False
+    i = 0
+    while i < len(sql):
+        ch = sql[i]
+        nxt = sql[i + 1] if i + 1 < len(sql) else ""
+        if in_line_comment:
+            if ch == "\n":
+                in_line_comment = False
+                buf.append(ch)
+            i += 1
+            continue
+        if not in_quote and ch == "-" and nxt == "-":
+            in_line_comment = True
+            i += 2
+            continue
+        if ch == "'":
+            buf.append(ch)
+            if in_quote and nxt == "'":
+                buf.append(nxt)
+                i += 2
+                continue
+            in_quote = not in_quote
+            i += 1
+            continue
+        if ch == ";" and not in_quote:
+            statement = "".join(buf).strip()
+            if statement:
+                statements.append(statement)
+            buf = []
+        else:
+            buf.append(ch)
+        i += 1
+    statement = "".join(buf).strip()
+    if statement:
+        statements.append(statement)
+    if in_quote:
+        raise ValueError("Unterminated single-quoted SQL string")
+    return statements
+
+
 def apply_ddl(engine, filename: str, schema: str) -> None:
     sql = (SQL_DIR / filename).read_text(encoding="utf-8")
     if engine.dialect.name == "sqlite":
         sql = adapt_sql_for_sqlite(sql, schema)
-    # Strip line comments before splitting on ';' — comments may themselves
-    # contain a ';' (this DDL has none inside string literals, so this is safe).
-    stripped = "\n".join(re.sub(r"--.*$", "", line) for line in sql.splitlines())
     with engine.begin() as conn:
-        for stmt in [s.strip() for s in stripped.split(";") if s.strip()]:
+        for stmt in split_sql_statements(sql):
             conn.execute(text(stmt))
 
 
 def load_table(engine, df: pd.DataFrame, table: str, schema: str) -> int:
-    """Idempotent load: DELETE all rows then append. Never duplicates."""
+    """Idempotent load into a pre-existing table: DELETE all rows then append."""
     to_schema = None if engine.dialect.name == "sqlite" else schema
     with engine.begin() as conn:
         conn.execute(text(f"DELETE FROM {table if to_schema is None else schema + '.' + table}"))
         if len(df):
             df.to_sql(table, conn, schema=to_schema, if_exists="append", index=False)
+    return len(df)
+
+
+def replace_table(engine, df: pd.DataFrame, table: str, schema: str) -> int:
+    """Create or refresh a DataFrame-backed table without dropping dependents.
+
+    On rerun, DELETE+append preserves reporting views that depend on the table
+    (important on PostgreSQL, where DROP TABLE would otherwise be rejected).
+    """
+    to_schema = None if engine.dialect.name == "sqlite" else schema
+    exists = table in inspect(engine).get_table_names(schema=to_schema)
+    if exists:
+        qualified = table if to_schema is None else f'{schema}.{table}'
+        with engine.begin() as conn:
+            conn.execute(text(f"DELETE FROM {qualified}"))
+            if len(df):
+                df.to_sql(table, conn, schema=to_schema, if_exists="append", index=False)
+    else:
+        df.to_sql(table, engine, schema=to_schema, if_exists="fail", index=False)
     return len(df)

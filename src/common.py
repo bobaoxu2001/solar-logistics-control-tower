@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 
 import yaml
+from sqlalchemy import create_engine, event
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 CONFIG_DIR = PROJECT_ROOT / "config"
@@ -44,6 +45,25 @@ def database_url(cfg: dict | None = None) -> str:
         rel = default.removeprefix("sqlite:///")
         return f"sqlite:///{PROJECT_ROOT / rel}"
     return default
+
+
+def create_project_engine(cfg: dict | None = None):
+    """Create an engine with the project schema on PostgreSQL's search path.
+
+    SQLite has no schemas. Setting the path per DBAPI connection lets the same
+    transparent Phase 3 SELECT statements run on either supported database.
+    """
+    cfg = cfg or load_config()
+    engine = create_engine(database_url(cfg))
+    if engine.dialect.name == "postgresql":
+        schema = cfg["database"]["schema"].replace('"', '""')
+
+        @event.listens_for(engine, "connect")
+        def _set_search_path(dbapi_connection, _connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute(f'SET search_path TO "{schema}", public')
+            cursor.close()
+    return engine
 
 
 def ensure_dirs() -> None:

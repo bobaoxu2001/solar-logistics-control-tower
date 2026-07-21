@@ -83,6 +83,40 @@ export DATABASE_URL=postgresql+psycopg2://sunlog:sunlog_dev_password@localhost:5
 python src/load_database.py && python src/run_phase2.py
 ```
 
+## How to run (Phase 3 — analytics, controls, and reporting)
+
+```bash
+python src/run_phase3.py         # end-to-end Phase 3 (~25s on the SQLite demo)
+python -m pytest tests/ -q       # 100 tests (52 Phase 1–2 + 48 Phase 3)
+```
+
+`run_phase3.py` validates the Phase 1–2 prerequisites, builds the portable KPI
+base, applies data-quality and freight-audit SQL, reconciles detections to the
+manifest, generates carrier/lane scorecards and evidence-led case studies,
+exports the Power BI reporting layer, refreshes the Excel KPI pack and
+documentation, and stops on a failed critical validation. It is deterministic,
+idempotent, and safe to rerun.
+
+Verified Phase 3 results at the `2025-07-01` reporting snapshot:
+
+- **10,324 shipments**, **10,012 delivered**, **312 GIT**; OTIF **86.88%**,
+  on-time **88.56%**, in-full **98.00%**.
+- **4,015 detections** reconciled to a **2,220-record** injected manifest:
+  **99.37% overall recall** and **100% critical recall**.
+- **$428,053.23 modeled recoverable overcharge**, **$1,999,642.11 duplicate
+  invoice exposure**, and **$50,145.64 unauthorized/excessive accessorial
+  recovery**. These are simulated control exposures, not realized savings.
+- Three-way match: **7,275 matched**, **155 matched with warning**, **2,233
+  review required**, **219 payment blocks**, and **60 missing records**.
+- Reconciled Power BI star-schema views/DAX and a populated
+  [`excel/logistics_kpi_pack.xlsx`](excel/logistics_kpi_pack.xlsx) with ten
+  operational and management-reporting sheets. No fabricated `.pbix` is
+  included.
+
+See [`documentation/phase3_summary.md`](documentation/phase3_summary.md),
+[`documentation/logistics_data_sop.md`](documentation/logistics_data_sop.md),
+and [`dashboard/dashboard_specification.md`](dashboard/dashboard_specification.md).
+
 ## What Phase 2 builds
 
 This project combines real public shipment history with deterministically
@@ -139,12 +173,12 @@ for the business framing.
   approvals, accruals; clean baseline validated (60 checks, 0 critical);
   2,220 controlled exceptions across 19 types with an exact manifest; 52
   passing tests; reproducible via `python src/run_phase2.py`
-- [ ] **Phase 3 — Analytics:** DQ rules, KPIs, freight audit, three-way match,
-  accruals, carrier scorecard
-- [ ] **Phase 4 — Reporting:** Power BI views + DAX, Excel KPI pack, SOP,
-  final README
-- [ ] **Phase 5 — QA:** reconciliation, exception-detection verification,
-  findings
+- [x] **Phase 3 — Analytics:** 25 DQ rules, KPI views, freight audit,
+  three-way match, accruals, carrier/lane scorecards, and root-cause evidence
+- [x] **Phase 4 — Reporting:** Power BI semantic views + DAX, ten-sheet Excel
+  KPI pack, operating SOP, and recruiter-facing documentation
+- [x] **Phase 5 — QA:** SQL/manifest/report/Excel reconciliation, 26 pipeline
+  validation gates, and 100 passing tests
 
 ## Repository map
 

@@ -1,0 +1,115 @@
+// Solar Logistics Control Tower — Phase 3 measures
+// Percentages are decimals formatted as percentages in Power BI.
+// All measures honor the active filter context from date, carrier, lane,
+// product, and location dimensions unless REMOVEFILTERS is stated explicitly.
+
+Shipment Count :=
+DISTINCTCOUNT ( rpt_fact_shipment[shipment_id] )
+
+Delivered Shipments :=
+CALCULATE ( [Shipment Count], rpt_fact_shipment[is_delivered] = 1 )
+
+On-Time Shipments :=
+CALCULATE ( [Shipment Count], rpt_fact_shipment[is_delivered] = 1, rpt_fact_shipment[on_time_flag] = 1 )
+
+In-Full Shipments :=
+CALCULATE ( [Shipment Count], rpt_fact_shipment[is_delivered] = 1, rpt_fact_shipment[in_full_flag] = 1 )
+
+OTIF Shipments :=
+CALCULATE ( [Shipment Count], rpt_fact_shipment[is_delivered] = 1, rpt_fact_shipment[otif_flag] = 1 )
+
+OTIF Percentage :=
+DIVIDE ( [OTIF Shipments], [Delivered Shipments] )
+
+On-Time Percentage :=
+DIVIDE ( [On-Time Shipments], [Delivered Shipments] )
+
+In-Full Percentage :=
+DIVIDE ( [In-Full Shipments], [Delivered Shipments] )
+
+GIT Count :=
+CALCULATE ( [Shipment Count], rpt_fact_shipment[git_flag] = 1 )
+
+GIT Value :=
+CALCULATE ( SUM ( rpt_fact_shipment[shipment_value_usd] ), rpt_fact_shipment[git_flag] = 1 )
+
+Overdue GIT :=
+CALCULATE ( [Shipment Count], rpt_fact_shipment[git_flag] = 1, rpt_fact_shipment[overdue_git_flag] = 1 )
+
+Average Transit Days :=
+CALCULATE ( AVERAGE ( rpt_fact_shipment[actual_transit_days] ), rpt_fact_shipment[is_delivered] = 1 )
+
+Average Delay Days :=
+CALCULATE ( AVERAGE ( rpt_fact_shipment[delay_days] ), rpt_fact_shipment[is_delivered] = 1 )
+
+Freight Spend :=
+SUM ( rpt_fact_freight_audit[invoiced_total] )
+
+Expected Freight :=
+SUM ( rpt_fact_freight_audit[expected_total] )
+
+Freight Variance :=
+[Freight Spend] - [Expected Freight]
+
+Potential Overcharge :=
+SUM ( rpt_fact_freight_audit[overcharge_amount] )
+
+Freight Cost per Kilogram :=
+DIVIDE ( [Freight Spend], SUM ( rpt_fact_freight_audit[shipment_weight_kg] ) )
+
+Accessorial Spend :=
+SUM ( rpt_fact_freight_audit[accessorial_charge] )
+
+Invoice Accuracy :=
+DIVIDE (
+    CALCULATE ( COUNTROWS ( rpt_fact_freight_audit ), rpt_fact_freight_audit[audit_status] = "MATCHED" ),
+    COUNTROWS ( rpt_fact_freight_audit )
+)
+
+Missing POD Rate :=
+DIVIDE (
+    CALCULATE ( [Shipment Count], rpt_fact_shipment[is_delivered] = 1, rpt_fact_shipment[has_pod] = 0 ),
+    [Delivered Shipments]
+)
+
+Claims Count :=
+DISTINCTCOUNT ( rpt_fact_claim[claim_id] )
+
+Claims Rate :=
+DIVIDE ( [Claims Count], [Delivered Shipments] )
+
+Claims Cost :=
+SUM ( rpt_fact_claim[claim_amount] )
+
+Capacity Utilization :=
+DIVIDE ( AVERAGE ( rpt_lane_scorecard[avg_capacity_utilization_pct] ), 100 )
+
+Open Accrual :=
+CALCULATE ( SUM ( rpt_fact_accrual[expected_freight_cost] ), rpt_fact_accrual[accrual_status] <> "RELEASED" )
+
+Accrual Variance :=
+SUM ( rpt_fact_accrual[accrual_variance] )
+
+Data Quality Score :=
+VAR WeightedOpen =
+    CALCULATE (
+        SUM ( rpt_fact_data_quality[severity_weight] ),
+        rpt_fact_data_quality[resolution_status] = "OPEN"
+    )
+VAR MaximumExposure = [Shipment Count] * 10
+RETURN MAX ( 0, 1 - DIVIDE ( WeightedOpen, MaximumExposure ) )
+
+Detection Precision :=
+DIVIDE (
+    SUM ( rpt_dq_detection_performance[true_positive_count] ),
+    SUM ( rpt_dq_detection_performance[true_positive_count] ) + SUM ( rpt_dq_detection_performance[false_positive_count] )
+)
+
+Detection Recall :=
+DIVIDE (
+    SUM ( rpt_dq_detection_performance[true_positive_count] ),
+    SUM ( rpt_dq_detection_performance[true_positive_count] ) + SUM ( rpt_dq_detection_performance[false_negative_count] )
+)
+
+Carrier Score :=
+AVERAGE ( rpt_carrier_scorecard[total_score] )

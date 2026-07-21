@@ -12,25 +12,19 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 import sys
 import uuid
 from datetime import datetime, timezone
 
 import pandas as pd
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, inspect, text
 
 from common import DATA_PROCESSED, PROJECT_ROOT, SQL_DIR, database_url, get_logger, load_config
+from gen_common import adapt_sql_for_sqlite, split_sql_statements
 
 log = get_logger("load_database")
 
 DDL_FILES = ["01_create_schema.sql", "02_create_tables.sql", "03_create_indexes.sql"]
-
-
-def adapt_sql_for_sqlite(sql: str, schema: str) -> str:
-    sql = re.sub(rf"\b{schema}\.", "", sql)
-    sql = re.sub(r"CREATE SCHEMA[^;]+;", "", sql, flags=re.IGNORECASE)
-    return sql
 
 
 def run_ddl(engine, schema: str) -> None:
@@ -42,9 +36,26 @@ def run_ddl(engine, schema: str) -> None:
             sql = (SQL_DIR / fname).read_text(encoding="utf-8")
             if is_sqlite:
                 sql = adapt_sql_for_sqlite(sql, schema)
-            for stmt in [s.strip() for s in sql.split(";") if s.strip()]:
+            for stmt in split_sql_statements(sql):
+                # Phase 1's stub uses ship_date; the Phase 2 replacement uses
+                # actual_ship_date. Create this compatibility index after
+                # inspecting the live table instead of assuming either schema.
+                if "ix_shipment_dates" in stmt:
+                    continue
                 conn.execute(text(stmt))
             log.info("Executed %s", fname)
+
+    table_schema = None if is_sqlite else schema
+    columns = {c["name"] for c in inspect(engine).get_columns("fact_shipment", schema=table_schema)}
+    ship_col = "actual_ship_date" if "actual_ship_date" in columns else "ship_date"
+    if ship_col not in columns:
+        raise RuntimeError("fact_shipment has neither actual_ship_date nor ship_date")
+    table = "fact_shipment" if is_sqlite else f"{schema}.fact_shipment"
+    with engine.begin() as conn:
+        conn.execute(text(
+            f"CREATE INDEX IF NOT EXISTS ix_shipment_dates ON {table} ({ship_col}, actual_delivery_date)"
+        ))
+    log.info("Created compatible shipment-date index using %s", ship_col)
 
 
 def qualified(table: str, engine, schema: str) -> str:

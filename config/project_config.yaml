@@ -218,3 +218,77 @@ phase2:
   accrual:
     month_end_cutoff_lag_days: 5  # invoices arriving within N days after period close still accrue
 
+
+# ===========================================================================
+# PHASE 3 — Analytics, freight audit, data quality, reporting (additive).
+# All thresholds/weights are config-driven; SQL reads them from meta_* tables
+# seeded by src/load_phase3.py. Nothing above is modified.
+# ===========================================================================
+phase3:
+  # Reporting snapshot = the Phase 2 as-of date (single source of truth).
+  as_of_date: "2025-07-01"
+
+  # --- Data-quality scoring -------------------------------------------------
+  dq_severity_weights: {CRITICAL: 10, HIGH: 5, MEDIUM: 2, LOW: 1}
+  # dq_score = 1 - (weighted open exceptions / weighted record exposure), where
+  # exposure = number of governed records * top severity weight. Documented in
+  # documentation/metric_definitions.md.
+  resolution_sla_hours: {CRITICAL: 24, HIGH: 72, MEDIUM: 168, LOW: 336}
+
+  # Goods-in-transit aging buckets (upper bound inclusive; last is open-ended).
+  git_aging_buckets: [7, 14, 30, 60]
+
+  # --- Accessorial contractual bands (max reasonable amount by type). Used to
+  # detect excessive charges; clean baseline stays within these.
+  accessorial_max_allowed:
+    DEMURRAGE: 2500
+    DETENTION: 900
+    STORAGE: 1200
+    LIFTGATE: 180
+    CUSTOMS_DOC: 350
+
+  # --- Carrier scorecard ----------------------------------------------------
+  carrier_scorecard:
+    min_shipments: 50            # below this -> "Insufficient volume"
+    weights:                     # must sum to 1.0 (validated in tests)
+      otif: 0.30
+      transit_reliability: 0.20
+      cost_competitiveness: 0.15
+      invoice_accuracy: 0.15
+      pod_compliance: 0.10
+      claims: 0.10
+    classification_bands: {preferred: 80, acceptable: 65, improvement: 50}  # score >=
+
+  lane_scorecard:
+    min_shipments: 20
+
+  # --- Freight-spend forecast (transparent, non-ML) ------------------------
+  forecast:
+    method: trailing_3m_plus_open   # trailing 3-month average + open-shipment expected cost
+    trailing_months: 3
+
+  # --- Exception ownership (business owner per exception type) --------------
+  exception_owners:
+    missing_carrier_id: Transportation Operations
+    invalid_lane: Transportation Operations
+    delivery_before_ship: Transportation Operations
+    over_delivery: Warehouse Operations
+    partial_delivery: Warehouse Operations
+    missing_pod: Warehouse Operations
+    missing_customs_doc: Trade Compliance
+    missing_hts_code: Trade Compliance
+    damaged_shipment_claim: Logistics Analytics
+    invoice_carrier_mismatch: Accounts Payable
+    incorrect_fuel_surcharge: Accounts Payable
+    incorrect_currency: Accounts Payable
+    expired_rate_card: Procurement
+    duplicate_invoice: Accounts Payable
+    duplicate_payment_risk: Accounts Payable
+    invoice_without_shipment: Accounts Payable
+    unauthorized_detention: Accounts Payable
+    excessive_demurrage: Accounts Payable
+    shipment_without_invoice: Logistics Analytics
+    paid_without_approval: Accounts Payable
+    invalid_milestone_sequence: Transportation Operations
+    capacity_over_100: Transportation Operations
+    broken_po_shipment: Procurement
