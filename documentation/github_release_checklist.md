@@ -15,14 +15,14 @@
 
 ## Manual GitHub actions — not yet performed
 
-- [ ] Public remote confirmed
-- [ ] Repository description added
-- [ ] Repository topics added
-- [ ] Code license selected without inventing dataset reuse terms
-- [ ] README images visually confirmed on GitHub after first push
-- [ ] CI workflow passing
-- [ ] Release tag `v1.0.0` created
-- [ ] GitHub release created from the reviewed commit
+- [x] Public remote confirmed
+- [x] Repository description added
+- [x] Repository topics added
+- [x] Code license selected without inventing dataset reuse terms
+- [x] README images visually confirmed on GitHub after first push
+- [x] CI workflow passing
+- [x] Release tag `v1.0.0` created
+- [x] GitHub release created from the reviewed commit
 - [ ] Final public GitHub URL added to resume and portfolio
 
 Do not mark the manual items complete until the public repository and release are visibly confirmed.
