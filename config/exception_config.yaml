@@ -1,0 +1,33 @@
+# ---------------------------------------------------------------------------
+# Controlled exception injection — rates and parameters (Phase 2).
+# All injection uses random_seed from project_config.yaml; the resulting
+# exception manifest is written to data/processed/exception_manifest.csv.
+# Rates are expressed as a fraction of eligible records in the target table.
+# ---------------------------------------------------------------------------
+
+exceptions:
+  missing_carrier_id:            {rate: 0.010, target_table: fact_shipment,          severity: high}
+  invalid_lane:                  {rate: 0.008, target_table: fact_shipment,          severity: high}
+  duplicate_invoice:             {rate: 0.012, target_table: fact_freight_invoice,   severity: critical}
+  missing_pod:                   {rate: 0.040, target_table: proof_of_delivery,      severity: medium}
+  expired_rate_card:             {rate: 0.015, target_table: fact_freight_invoice,   severity: high}
+  invoice_carrier_mismatch:      {rate: 0.010, target_table: fact_freight_invoice,   severity: high}
+  delivery_before_ship:          {rate: 0.004, target_table: fact_shipment,          severity: critical}
+  over_delivery:                 {rate: 0.008, target_table: fact_shipment,          severity: medium}
+  unauthorized_detention:        {rate: 0.015, target_table: fact_accessorial_charge, severity: high}
+  excessive_demurrage:           {rate: 0.010, target_table: fact_accessorial_charge, severity: high}
+  incorrect_fuel_surcharge:      {rate: 0.020, target_table: fact_freight_invoice,   severity: medium}
+  shipment_without_invoice:      {rate: 0.030, target_table: fact_freight_invoice,   severity: medium}
+  invoice_without_shipment:      {rate: 0.006, target_table: fact_freight_invoice,   severity: critical}
+  duplicate_payment_risk:        {rate: 0.005, target_table: fact_freight_invoice,   severity: critical}
+  incorrect_currency:            {rate: 0.006, target_table: fact_freight_invoice,   severity: medium}
+  missing_hts_code:              {rate: 0.020, target_table: dim_product,            severity: medium}
+  missing_customs_doc:           {rate: 0.015, target_table: fact_shipment_milestone, severity: high}
+  partial_delivery:              {rate: 0.020, target_table: fact_shipment,          severity: medium}
+  damaged_shipment_claim:        {rate: 0.012, target_table: fact_claim,             severity: medium}
+  # late_delivery is NOT injected — lateness is real, inherited from the source
+  # dataset's actual vs. scheduled delivery dates.
+
+audit_thresholds:
+  absolute_variance_usd: 100.00
+  variance_pct: 5.0

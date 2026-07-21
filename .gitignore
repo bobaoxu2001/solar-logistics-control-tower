@@ -1,0 +1,22 @@
+# Environments / secrets
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Data — raw and interim files are reproducible via src/download_data.py
+data/raw/*.csv
+data/interim/
+data/processed/
+!data/samples/
+
+# Database files (SQLite fallback)
+*.db
+*.sqlite
+
+# OS
+.DS_Store

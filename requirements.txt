@@ -1,0 +1,15 @@
+# Core pipeline
+pandas>=2.2
+numpy>=1.26
+SQLAlchemy>=2.0
+PyYAML>=6.0
+
+# Excel exports
+openpyxl>=3.1
+
+# Testing
+pytest>=8.0
+
+# PostgreSQL driver (optional — only needed when DATABASE_URL points at PostgreSQL;
+# the pipeline falls back to SQLite without it)
+# psycopg2-binary>=2.9

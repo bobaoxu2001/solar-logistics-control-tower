@@ -1,0 +1,80 @@
+# ---------------------------------------------------------------------------
+# Solar Logistics Control Tower — project configuration
+# Single source of truth for reproducibility-sensitive settings.
+# ---------------------------------------------------------------------------
+
+project_name: solar-logistics-control-tower
+random_seed: 42
+
+# --- Source dataset -------------------------------------------------------
+# USAID "Supply Chain Shipment Pricing Data" (SCMS Delivery History Dataset).
+# The official portal (data.usaid.gov, Socrata id a3rc-nmf6) was decommissioned
+# in 2025; the file is acquired from public GitHub mirrors and verified against
+# a pinned SHA-256 so every mirror must produce a byte-identical file.
+source_dataset:
+  name: SCMS Delivery History Dataset
+  original_publisher: USAID (public domain / US Government work)
+  original_portal: https://data.usaid.gov/Health/Supply-Chain-Shipment-Pricing-Data/a3rc-nmf6 (offline)
+  sha256: 918b992dd3e8d4b64d2a727b2c4ea607603d0c58f19484e73f7b78528c6a8673
+  expected_rows: 10324
+  expected_columns: 33
+  local_path: data/raw/scms_delivery_history_raw.csv
+  mirrors:
+    - "https://raw.githubusercontent.com/suheb1231/SCMS-Delivery-History-Dataset/main/SCMS_Delivery_History_Dataset%20(1).csv"
+    - "https://media.githubusercontent.com/media/pandey-rakshit/data-library/main/FedEx/SCMS_Delivery_History_Dataset.csv"
+
+# --- Case-study adaptation ------------------------------------------------
+# The source data records pharmaceutical shipments (HIV/malaria programs).
+# Real shipment PATTERNS (dates, modes, weights, values, freight costs,
+# origins, destinations) are preserved; the PRODUCT IDENTITY is remapped to a
+# renewable-energy catalog for the SunGrid Energy Solutions case study.
+# Lineage to the original record is kept on every row (source_record_id).
+adaptation:
+  company_name: SunGrid Energy Solutions
+  # Deliberate, deterministic mapping keyed on (Product Group, Sub Classification).
+  # "*" matches any sub-classification not listed explicitly.
+  product_category_map:
+    "ARV|Adult": SOLAR_MODULE
+    "ARV|Pediatric": INVERTER
+    "HRDT|HIV test": BATTERY_ESS
+    "HRDT|HIV test - Ancillary": BOS_COMPONENT
+    "ANTM|*": BOS_COMPONENT
+    "ACT|*": BOS_COMPONENT
+    "MRDT|*": BOS_COMPONENT
+  product_category_labels:
+    SOLAR_MODULE: Solar Modules
+    INVERTER: Inverters
+    BATTERY_ESS: Battery Energy Storage Systems
+    BOS_COMPONENT: Electrical Balance-of-System Components
+  # Source deliveries span 2006-06 .. 2015-09. Dates are shifted forward by a
+  # constant so dashboards show a recent window (2016-06 .. 2025-09) while
+  # preserving every interval, weekday-independent duration and seasonality gap.
+  date_shift_years: 10
+
+# --- Cleaning rules -------------------------------------------------------
+cleaning:
+  date_format: "%d-%b-%y"            # e.g. 2-Jun-06
+  date_sentinels:                    # parsed as NULL + flagged, never dropped
+    - "Pre-PQ Process"
+    - "Date Not Captured"
+    - "N/A - From RDC"
+  # Non-numeric sentinels in Weight (Kilograms) / Freight Cost (USD).
+  # "See DN-xxxx (ID#:yyyy)" and "See ASN-xxxx (ID#:yyyy)" are cross-references
+  # to another shipment row; the pipeline resolves them by ID lookup.
+  reference_pattern: "ID#:\\s*(\\d+)"
+  weight_sentinels:
+    - "Weight Captured Separately"
+  freight_sentinels:
+    - "Freight Included in Commodity Cost"
+    - "Invoiced Separately"
+  shipment_mode_map:                 # normalization; NULL mode is kept + flagged
+    "Air": AIR
+    "Air Charter": AIR_CHARTER
+    "Truck": TRUCK
+    "Ocean": OCEAN
+
+# --- Database -------------------------------------------------------------
+database:
+  # DATABASE_URL env var wins; this is the fallback of the fallback.
+  default_url: sqlite:///data/processed/sunlog.db
+  schema: sunlog                     # applied on PostgreSQL only; SQLite has no schemas
