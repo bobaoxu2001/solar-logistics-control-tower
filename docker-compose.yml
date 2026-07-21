@@ -4,7 +4,8 @@ services:
     container_name: sunlog-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-sunlog}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sunlog_dev_password}
+      # Local-only placeholder; override via an untracked .env file.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-local-only}
       POSTGRES_DB: ${POSTGRES_DB:-sunlog}
     ports:
       - "5432:5432"

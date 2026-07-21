@@ -16,6 +16,8 @@ The $2.48M financial-control exposure is modeled within simulated enterprise rec
 
 **Technology:** Python · SQL · PostgreSQL-compatible analytics · SQLite · Power BI · DAX · Excel · openpyxl · pytest
 
+**Start here:** choose a [2-minute, 5-minute, or 10-minute portfolio viewing path](PORTFOLIO_GUIDE.md).
+
 ## Executive dashboard preview
 
 ![Power BI dashboard design mockup generated from project reporting outputs](dashboard/screenshots/01_executive_overview.png)
@@ -49,6 +51,8 @@ See [the detailed architecture and assumption log](documentation/project_archite
 | Carriers, rates, invoices, milestones, PODs, claims, approvals, accruals | Seeded Python generation derived from shipment patterns | SIMULATED |
 
 The public source originally records pharmaceutical shipments. Dates, modes, weights, values, freight costs, origins, and destinations are retained as shipment patterns; product identity is deterministically remapped to a renewable-energy catalog. Original product fields and `source_record_id` remain available for lineage. No data is presented as coming from a real solar company.
+
+The repository preserves the publisher attribution, original portal identifier, mirror disclosure, and pinned checksum. The exact reuse terms were not independently verified from the current repository evidence; users should review the original source terms before redistributing the dataset. This portfolio is not affiliated with USAID, the mirror maintainers, any target employer, or any real solar company.
 
 ## Analytical modules
 
@@ -140,7 +144,7 @@ With PostgreSQL:
 
 ```bash
 docker compose up -d
-export DATABASE_URL=postgresql+psycopg2://sunlog:sunlog_dev_password@localhost:5432/sunlog
+export DATABASE_URL=postgresql+psycopg2://sunlog:change-me-local-only@localhost:5432/sunlog
 python3 src/load_database.py
 python3 src/run_phase2.py
 python3 src/run_phase3.py
@@ -166,5 +170,6 @@ python3 src/run_phase4.py
 - [Interview answers, resume bullets, and STAR stories](documentation/interview_materials.md)
 - [Standalone interview chart gallery and source map](documentation/chart_source_map.md)
 - [Phase 4 completion summary](documentation/phase4_summary.md)
+- [Publication audit summary](documentation/publication_audit_summary.md)
 
 The recommended ten-minute path is: data disclosure → architecture → Executive Overview → Freight Audit → Data Quality → Carrier/Lane → recommendations → limitations and production roadmap.

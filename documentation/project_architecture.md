@@ -98,7 +98,9 @@ erDiagram
 1. **Official portal offline.** `data.usaid.gov` was decommissioned in 2025.
    The file is acquired from public GitHub mirrors and rejected unless its
    SHA-256 equals the pinned value (originally cross-validated between two
-   independent mirrors, one of them a Git-LFS object hash).
+   independent mirrors, one of them a Git-LFS object hash). The exact reuse
+   terms were not independently verified from the repository evidence; users
+   should review the original source terms before redistributing the dataset.
 2. **Cross-reference resolution.** 2,445 rows carry
    `See DN-xxxx (ID#:yyyy)` / `See ASN-xxxx (ID#:yyyy)` instead of a numeric
    weight/freight value. These reference another row of the same file; the

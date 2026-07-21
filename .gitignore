@@ -1,12 +1,23 @@
 # Environments / secrets
 .env
+.env.*
+!.env.example
 .venv/
 venv/
+env/
+credentials*.json
+service-account*.json
+*.pem
+*.key
 
 # Python
 __pycache__/
 *.pyc
 .pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
 
 # Data — raw and interim files are reproducible via src/download_data.py
 data/raw/*.csv
@@ -17,6 +28,23 @@ data/processed/
 # Database files (SQLite fallback)
 *.db
 *.sqlite
+*.db-shm
+*.db-wal
+
+# Generated logs / temporary exports
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+~$*.xlsx
+excel/exported_reporting_tables/*
+!excel/exported_reporting_tables/.gitkeep
+
+# Editors
+.idea/
+.vscode/
+*.swp
 
 # OS
 .DS_Store

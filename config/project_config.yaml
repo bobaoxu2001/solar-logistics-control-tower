@@ -13,8 +13,9 @@ random_seed: 42
 # a pinned SHA-256 so every mirror must produce a byte-identical file.
 source_dataset:
   name: SCMS Delivery History Dataset
-  original_publisher: USAID (public domain / US Government work)
+  original_publisher: USAID
   original_portal: https://data.usaid.gov/Health/Supply-Chain-Shipment-Pricing-Data/a3rc-nmf6 (offline)
+  reuse_terms_note: Exact reuse terms were not independently verified for this portfolio; review the original source terms before redistribution.
   sha256: 918b992dd3e8d4b64d2a727b2c4ea607603d0c58f19484e73f7b78528c6a8673
   expected_rows: 10324
   expected_columns: 33
