@@ -7,6 +7,9 @@ PyYAML>=6.0
 # Excel exports
 openpyxl>=3.1
 
+# Cross-platform SVG-to-PNG rendering for Phase 4 portfolio assets
+CairoSVG>=2.7
+
 # Testing
 pytest>=8.0
 

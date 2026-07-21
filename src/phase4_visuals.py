@@ -142,19 +142,31 @@ class Svg:
 
 def render_png(svg: Svg, output: Path) -> None:
     renderer = shutil.which("sips")
-    if not renderer:
-        raise RuntimeError("Phase 4 PNG generation requires the macOS 'sips' renderer")
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_suffix(".phase4.svg")
     temporary.write_text(svg.finish(), encoding="utf-8")
     try:
-        subprocess.run(
-            [renderer, "-s", "format", "png", str(temporary), "--out", str(output)],
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
+        if renderer:
+            subprocess.run(
+                [renderer, "-s", "format", "png", str(temporary), "--out", str(output)],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+        else:
+            try:
+                import cairosvg
+            except ImportError as exc:
+                raise RuntimeError(
+                    "Phase 4 PNG generation requires macOS sips or the CairoSVG dependency"
+                ) from exc
+            cairosvg.svg2png(
+                bytestring=temporary.read_bytes(),
+                write_to=str(output),
+                output_width=svg.width,
+                output_height=svg.height,
+            )
     finally:
         temporary.unlink(missing_ok=True)
 

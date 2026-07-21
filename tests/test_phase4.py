@@ -173,10 +173,11 @@ def test_excel_validation_report_records_full_pass():
 
 
 def test_phase4_generation_is_idempotent():
-    before = visual_hashes()
     phase4_visuals.generate_all()
-    after = visual_hashes()
-    assert before == after
+    first = visual_hashes()
+    phase4_visuals.generate_all()
+    second = visual_hashes()
+    assert first == second
 
 
 def test_phase4_hash_manifest_records_all_passes():

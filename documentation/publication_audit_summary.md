@@ -63,13 +63,13 @@ The largest publication file is the Excel KPI workbook, which remains small enou
 | `excel/` | 2.51 MiB |
 | `documentation/` | 1.21 MiB |
 | `dashboard/` | 1.05 MiB |
-| `src/` | 324.41 KiB |
+| `src/` | 324.81 KiB |
 | `data/` | 118.19 KiB |
-| `sql/` | 91.04 KiB |
-| `tests/` | 52.75 KiB |
+| `sql/` | 91.05 KiB |
+| `tests/` | 52.93 KiB |
 | `config/` | 20.33 KiB |
-| `(root files)` | 19.41 KiB |
-| `.github/` | 2.56 KiB |
+| `(root files)` | 19.49 KiB |
+| `.github/` | 2.60 KiB |
 
 ## Data attribution and disclosure
 

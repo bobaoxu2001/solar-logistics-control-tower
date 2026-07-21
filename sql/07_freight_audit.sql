@@ -146,8 +146,8 @@ GROUP BY invoice_carrier;
 DROP VIEW IF EXISTS sunlog.v_audit_recoverable_summary;
 CREATE VIEW sunlog.v_audit_recoverable_summary AS
 SELECT
-  (SELECT COALESCE(SUM(CAST((CASE WHEN is_material = 1 AND variance_amount > 0 THEN variance_amount ELSE 0 END)
-                                  * 100 + 0.01 AS BIGINT)),0) / 100.0
+  (SELECT COALESCE(SUM(CAST(ROUND((CASE WHEN is_material = 1 AND variance_amount > 0 THEN variance_amount ELSE 0 END)
+                                        * 100, 0) AS BIGINT)),0) / 100.0
      FROM sunlog.v_freight_audit
      WHERE audit_status IN ('POTENTIAL_OVERCHARGE','INCORRECT_FUEL_SURCHARGE')) AS overcharge_recoverable,
   (SELECT COALESCE(SUM(CAST(invoiced_total * 100 + 0.01 AS BIGINT)),0) / 100.0

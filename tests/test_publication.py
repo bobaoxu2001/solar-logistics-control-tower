@@ -62,7 +62,9 @@ def test_ci_workflow_uses_python_311_and_dependency_cache():
         Loader=yaml.BaseLoader,
     )
     steps = workflow["jobs"]["validate"]["steps"]
+    checkout = next(step for step in steps if step.get("uses", "").startswith("actions/checkout@"))
     setup = next(step for step in steps if step.get("uses", "").startswith("actions/setup-python@"))
+    assert checkout["with"]["fetch-depth"] == "0"
     assert setup["with"]["python-version"] == "3.11"
     assert setup["with"]["cache"] == "pip"
 
