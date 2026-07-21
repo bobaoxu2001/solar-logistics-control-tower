@@ -123,3 +123,74 @@ erDiagram
    rules: 0 rejects, 10,324/10,324 rows staged.)
 7. **Late delivery is real, not injected.** OTIF pressure in this dataset is
    genuine; the Phase 2 exception injector deliberately excludes lateness.
+
+## Phase 2 — enterprise simulation methodology
+
+### Pipeline (`python src/run_phase2.py`)
+
+```
+stg_shipment (10,324, Phase 1)
+   │  generate_master_data.py           → data/processed/clean/dim_*.csv
+   │     locations (+xref) · products · suppliers · warehouses · carriers ·
+   │     lanes (+rate) · rate cards ; writes interim/shipment_resolved.csv
+   │  generate_enterprise_data.py       → data/processed/clean/fact_*.csv
+   │     POs · shipments · milestones · invoices · lines · accessorials ·
+   │     POD · claims · capacity · approvals · accruals ; rpt_* reports
+   ▼
+CLEAN BASELINE (ground truth) ──▶ validate_phase2.py (60 checks, 0 critical)
+   │  inject_exceptions.py  (config/exception_config.yaml, seeded, disjoint)
+   ▼
+OPERATIONAL LAYER  data/processed/operational/*.csv  +  exception_manifest.csv
+   │  load_phase2.py  (apply sql/20_phase2_enterprise_model.sql, load operational)
+   ▼
+sunlog.db / PostgreSQL  ──▶  Phase 3 analytics
+```
+
+### Clean-vs-exception storage strategy
+- The **clean baseline** lives in `data/processed/clean/` (immutable ground
+  truth) and is validated to zero critical failures before anything is injected.
+- The **operational layer** (`data/processed/operational/`) is the clean
+  baseline with deterministically injected exceptions; this is what loads into
+  the canonical DB tables, because a real TMS/settlement database contains the
+  errors that audit must catch.
+- The **exception manifest** records every clean→injected change
+  (`clean_value`, `injected_value`), so clean-vs-corrupted comparison needs no
+  duplicate tables. A single documented FK relaxation applies only to the
+  intentionally-corrupted operational load (SQLite doesn't enforce FKs;
+  PostgreSQL uses `session_replication_role=replica` for that load).
+
+### Key derivation rules (assumption log, continued)
+8. **`data_class` is the provenance marker** (PUBLIC / DERIVED / SIMULATED) on
+   every table — the project's single name for "source_type"; not duplicated.
+9. **Deterministic everything.** IDs come from stable natural keys; every
+   stochastic draw is seeded per-record (hash of seed+salt+key), so output is
+   order-independent, reproducible, and idempotent.
+10. **Ship dates are derived, and flagged.** The source has no departure
+    timestamp. `planned_ship = planned_delivery − lane standard transit`;
+    `actual_ship = actual_delivery − (standard ± seeded jitter)`;
+    `booking = min(ship dates) − lead`. Real delivery dates are never
+    overwritten. `ship_date_derived_flag = 1`.
+11. **Transit standard is mode/region-based, not observed.** With no departure
+    timestamp, true transit is unobservable; `rpt_lane_derivation` records the
+    chosen standard, method (`MODE_REGION_STANDARD`), data sufficiency, and a
+    real order-lead proxy — it never claims to have measured transit.
+12. **Rate calibration.** `rate_per_kg` per mode ≈ observed median freight/kg
+    (AIR 9.35, OCEAN 1.62, TRUCK 1.82, …); `rpt_rate_reconciliation` shows the
+    all-mode expected/observed ratio ≈ 1.0.
+13. **Goods-in-transit snapshot.** Shipments whose (shifted) delivery falls
+    after `data_as_of_date` (2025-07-01) are treated as IN_TRANSIT (≈3%), giving
+    Phase 3 a realistic GIT / open-accrual population.
+14. **Nominal product units.** `unit_weight_kg`/`unit_value_usd` are the observed
+    median pack weight/value from the source, representing pack/carton units —
+    not full-panel physical specs. Shipment weights remain the real source
+    values (imputed only where the source lacked them, flagged).
+
+### Exception injection
+- 19 configured types, rates in `config/exception_config.yaml`. Selection is
+  deterministic and **disjoint** per pool (a record/column is touched by at most
+  one type), so exceptions never silently overlap. Any type can be disabled from
+  config. See `documentation/phase2_summary.md` for per-type expected vs actual
+  counts.
+- Minor, documented cross-pool interactions are possible and realistic (e.g. an
+  invoice given a carrier mismatch whose shipment also had its carrier nulled);
+  the manifest remains exact to the records changed.

@@ -1,0 +1,51 @@
+lane_id,origin_name,destination_name,transport_mode,n_shipments,median_order_lead_days,median_derived_transit_days,standard_transit_days,derivation_method,data_sufficiency
+LANE00001,ABBSP,Mozambique Distribution Center,AIR,1,,8.0,5,MODE_REGION_STANDARD,LOW
+LANE00002,ABBVIE (Abbott) France,Côte d'Ivoire Distribution Center,AIR,7,,6.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00003,ABBVIE (Abbott) France,Mozambique Distribution Center,AIR,2,,3.5,5,MODE_REGION_STANDARD,LOW
+LANE00004,ABBVIE (Abbott) France,Nigeria Distribution Center,AIR,2,,7.5,5,MODE_REGION_STANDARD,LOW
+LANE00005,ABBVIE (Abbott) France,South Africa Distribution Center,AIR,3,,4.0,5,MODE_REGION_STANDARD,LOW
+LANE00006,ABBVIE (Abbott) France,South Africa Distribution Center,TRUCK,10,,4.0,4,MODE_REGION_STANDARD,MEDIUM
+LANE00007,ABBVIE (Abbott) France,Vietnam Distribution Center,AIR,1,,3.0,5,MODE_REGION_STANDARD,LOW
+LANE00008,ABBVIE (Abbott) Japan Co. Ltd.,Haiti Distribution Center,AIR,1,,3.0,5,MODE_REGION_STANDARD,LOW
+LANE00009,ABBVIE (Abbott) Japan Co. Ltd.,Nigeria Distribution Center,AIR,1,,5.0,5,MODE_REGION_STANDARD,LOW
+LANE00010,ABBVIE (Abbott) Logis. UK,Angola Distribution Center,AIR,1,,4.0,5,MODE_REGION_STANDARD,LOW
+LANE00011,ABBVIE (Abbott) Logis. UK,"Congo, DRC Distribution Center",AIR,8,,5.5,5,MODE_REGION_STANDARD,MEDIUM
+LANE00012,ABBVIE (Abbott) Logis. UK,Côte d'Ivoire Distribution Center,AIR,23,,5.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00013,ABBVIE (Abbott) Logis. UK,Ethiopia Distribution Center,AIR,2,,6.0,5,MODE_REGION_STANDARD,LOW
+LANE00014,ABBVIE (Abbott) Logis. UK,Ethiopia Distribution Center,TRUCK,1,,3.0,4,MODE_REGION_STANDARD,LOW
+LANE00015,ABBVIE (Abbott) Logis. UK,Ghana Distribution Center,TRUCK,4,,6.0,4,MODE_REGION_STANDARD,LOW
+LANE00016,ABBVIE (Abbott) Logis. UK,Guyana Distribution Center,AIR,8,,6.5,5,MODE_REGION_STANDARD,MEDIUM
+LANE00017,ABBVIE (Abbott) Logis. UK,Haiti Distribution Center,AIR,9,,6.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00018,ABBVIE (Abbott) Logis. UK,Mozambique Distribution Center,AIR,11,,5.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00019,ABBVIE (Abbott) Logis. UK,Mozambique Distribution Center,TRUCK,1,,5.0,4,MODE_REGION_STANDARD,LOW
+LANE00020,ABBVIE (Abbott) Logis. UK,Nigeria Distribution Center,AIR,5,,5.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00021,ABBVIE (Abbott) Logis. UK,Rwanda Distribution Center,AIR,9,,3.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00022,ABBVIE (Abbott) Logis. UK,South Africa Distribution Center,AIR,6,,4.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00023,ABBVIE (Abbott) Logis. UK,South Africa Distribution Center,TRUCK,55,,4.0,4,MODE_REGION_STANDARD,HIGH
+LANE00024,ABBVIE (Abbott) Logis. UK,Tanzania Distribution Center,AIR,14,,5.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00025,ABBVIE (Abbott) Logis. UK,Tanzania Distribution Center,TRUCK,1,,4.0,4,MODE_REGION_STANDARD,LOW
+LANE00026,ABBVIE (Abbott) Logis. UK,Uganda Distribution Center,AIR,7,,6.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00027,ABBVIE (Abbott) Logis. UK,Vietnam Distribution Center,AIR,14,,4.5,5,MODE_REGION_STANDARD,MEDIUM
+LANE00028,ABBVIE (Abbott) Logis. UK,Zambia Distribution Center,AIR,15,,5.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00029,ABBVIE (Abbott) Logis. UK,Zambia Distribution Center,TRUCK,1,,3.0,4,MODE_REGION_STANDARD,LOW
+LANE00030,ABBVIE (Abbott) Logis. UK,Zimbabwe Distribution Center,AIR,24,,5.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00031,ABBVIE (Abbott) St. P'burg USA,Dominican Republic Distribution Center,TRUCK,3,,3.0,4,MODE_REGION_STANDARD,LOW
+LANE00032,ABBVIE (Abbott) St. P'burg USA,Vietnam Distribution Center,AIR,1,,8.0,5,MODE_REGION_STANDARD,LOW
+LANE00033,ABBVIE (Abbott) St. P'burg USA,Zambia Distribution Center,AIR,1,,4.0,5,MODE_REGION_STANDARD,LOW
+LANE00034,ABBVIE (Abbott) St. P'burg USA,Zimbabwe Distribution Center,AIR,1,,4.0,5,MODE_REGION_STANDARD,LOW
+LANE00035,ABBVIE GmbH & Co.KG Wiesbaden,Angola Distribution Center,TRUCK,1,,6.0,4,MODE_REGION_STANDARD,LOW
+LANE00036,ABBVIE GmbH & Co.KG Wiesbaden,Botswana Distribution Center,AIR,1,,8.0,5,MODE_REGION_STANDARD,LOW
+LANE00037,ABBVIE GmbH & Co.KG Wiesbaden,Côte d'Ivoire Distribution Center,AIR,7,,6.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00038,ABBVIE GmbH & Co.KG Wiesbaden,Ethiopia Distribution Center,AIR,2,,6.0,5,MODE_REGION_STANDARD,LOW
+LANE00039,ABBVIE GmbH & Co.KG Wiesbaden,Guyana Distribution Center,AIR,3,,4.0,5,MODE_REGION_STANDARD,LOW
+LANE00040,ABBVIE GmbH & Co.KG Wiesbaden,Haiti Distribution Center,AIR,3,,6.0,5,MODE_REGION_STANDARD,LOW
+LANE00041,ABBVIE GmbH & Co.KG Wiesbaden,Haiti Distribution Center,AIR_CHARTER,1,,2.0,3,MODE_REGION_STANDARD,LOW
+LANE00042,ABBVIE GmbH & Co.KG Wiesbaden,Mozambique Distribution Center,AIR,2,,4.0,5,MODE_REGION_STANDARD,LOW
+LANE00043,ABBVIE GmbH & Co.KG Wiesbaden,Namibia Distribution Center,AIR,1,,6.0,5,MODE_REGION_STANDARD,LOW
+LANE00044,ABBVIE GmbH & Co.KG Wiesbaden,Namibia Distribution Center,TRUCK,1,,5.0,4,MODE_REGION_STANDARD,LOW
+LANE00045,ABBVIE GmbH & Co.KG Wiesbaden,Nigeria Distribution Center,AIR,7,,6.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00046,ABBVIE GmbH & Co.KG Wiesbaden,Rwanda Distribution Center,AIR,1,,5.0,5,MODE_REGION_STANDARD,LOW
+LANE00047,ABBVIE GmbH & Co.KG Wiesbaden,Tanzania Distribution Center,AIR,1,,4.0,5,MODE_REGION_STANDARD,LOW
+LANE00048,ABBVIE GmbH & Co.KG Wiesbaden,Zambia Distribution Center,AIR,6,,6.0,5,MODE_REGION_STANDARD,MEDIUM
+LANE00049,ABBVIE GmbH & Co.KG Wiesbaden,Zambia Distribution Center,TRUCK,1,,2.0,4,MODE_REGION_STANDARD,LOW
+LANE00050,ABBVIE GmbH & Co.KG Wiesbaden,Zimbabwe Distribution Center,TRUCK,1,,4.0,4,MODE_REGION_STANDARD,LOW

@@ -1,0 +1,6 @@
+reconciliation_scope,n_shipments_with_freight,median_observed_freight,median_expected_freight,expected_to_observed_ratio,notes
+AIR,6157,5346.38,8184.02,1.5308,Expected = rate_per_kg*weight (>=min) + fuel; observed = source freight median
+AIR_CHARTER,672,17090.0,14713.61,0.8609,Expected = rate_per_kg*weight (>=min) + fuel; observed = source freight median
+OCEAN,377,9323.28,10102.83,1.0836,Expected = rate_per_kg*weight (>=min) + fuel; observed = source freight median
+TRUCK,2806,7504.0,2824.05,0.3763,Expected = rate_per_kg*weight (>=min) + fuel; observed = source freight median
+ALL,10012,6759.28,7058.77,1.0443,All-mode roll-up

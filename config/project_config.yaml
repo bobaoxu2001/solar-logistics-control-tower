@@ -78,3 +78,143 @@ database:
   # DATABASE_URL env var wins; this is the fallback of the fallback.
   default_url: sqlite:///data/processed/sunlog.db
   schema: sunlog                     # applied on PostgreSQL only; SQLite has no schemas
+
+# ===========================================================================
+# PHASE 2 — Enterprise logistics data simulation (additive; no Phase 1 key
+# above is modified). All generation is deterministic under random_seed.
+# Every number here is either grounded in the observed source distribution
+# (see documentation/business_requirements.md §Phase 2) or a documented
+# operational assumption. data_class on every generated table records
+# provenance (PUBLIC / DERIVED / SIMULATED); it is this project's name for the
+# "source_type" concept and is not duplicated.
+# ===========================================================================
+phase2:
+  # --- Carrier master (fictional names; 12 carriers across all modes) -------
+  carriers:
+    - {carrier_id: CAR01, carrier_name: "Helios Ocean Lines",          carrier_type: OCEAN_LINE,  primary_mode: OCEAN,       operating_region: GLOBAL,        payment_terms: NET45, default_currency: USD}
+    - {carrier_id: CAR02, carrier_name: "BlueCurrent Shipping",        carrier_type: OCEAN_LINE,  primary_mode: OCEAN,       operating_region: ASIA_AFRICA,   payment_terms: NET45, default_currency: USD}
+    - {carrier_id: CAR03, carrier_name: "AeroVolt Air Cargo",          carrier_type: AIR_CARGO,   primary_mode: AIR,         operating_region: GLOBAL,        payment_terms: NET30, default_currency: USD}
+    - {carrier_id: CAR04, carrier_name: "VoltLine Express Air",        carrier_type: AIR_CARGO,   primary_mode: AIR,         operating_region: GLOBAL,        payment_terms: NET30, default_currency: USD}
+    - {carrier_id: CAR05, carrier_name: "Continental Charter Air",     carrier_type: AIR_CARGO,   primary_mode: AIR_CHARTER, operating_region: GLOBAL,        payment_terms: NET30, default_currency: USD}
+    - {carrier_id: CAR06, carrier_name: "SunHaul Trucking",            carrier_type: TRUCKING,    primary_mode: TRUCK,       operating_region: AFRICA,        payment_terms: NET30, default_currency: USD}
+    - {carrier_id: CAR07, carrier_name: "TerraLink Road Freight",      carrier_type: TRUCKING,    primary_mode: TRUCK,       operating_region: GLOBAL,        payment_terms: NET30, default_currency: USD}
+    - {carrier_id: CAR08, carrier_name: "PhotonRail Logistics",        carrier_type: RAIL,        primary_mode: RAIL,        operating_region: EURASIA,       payment_terms: NET45, default_currency: USD}
+    - {carrier_id: CAR09, carrier_name: "GridWay Multimodal",          carrier_type: MULTIMODAL,  primary_mode: MULTIMODAL,  operating_region: GLOBAL,        payment_terms: NET45, default_currency: USD}
+    - {carrier_id: CAR10, carrier_name: "Meridian Freight Forwarders", carrier_type: FORWARDER,   primary_mode: AIR,         operating_region: GLOBAL,        payment_terms: NET30, default_currency: USD}
+    - {carrier_id: CAR11, carrier_name: "Cascade Customs & Brokerage", carrier_type: BROKER,      primary_mode: MULTIMODAL,  operating_region: GLOBAL,        payment_terms: NET30, default_currency: USD}
+    - {carrier_id: CAR12, carrier_name: "LastMile Renewables Delivery", carrier_type: FINAL_MILE, primary_mode: TRUCK,       operating_region: AFRICA,        payment_terms: NET15, default_currency: USD}
+  # Which carriers may serve each shipment mode (deterministic weighted pick).
+  carrier_mode_pool:
+    AIR:         [CAR03, CAR04, CAR10]
+    AIR_CHARTER: [CAR05, CAR04]
+    TRUCK:       [CAR06, CAR07, CAR12]
+    OCEAN:       [CAR01, CAR02, CAR09]
+    RAIL:        [CAR08]
+    MULTIMODAL:  [CAR09, CAR11]
+
+  # --- Transit standards (days) by mode. Source has NO departure timestamp,
+  # so transit is NOT observable; these are mode/region operational standards
+  # (derivation_method = MODE_REGION_STANDARD). See §lane_derivation.
+  transit_standard_days:
+    AIR: 5
+    AIR_CHARTER: 3
+    TRUCK: 4
+    OCEAN: 32
+    RAIL: 10
+    MULTIMODAL: 20
+  transit_noise_days: 3          # +/- seeded jitter on ACTUAL transit (clamped >=1)
+  booking_lead_days: 4           # booking precedes planned ship
+  data_sufficiency_thresholds: {high: 30, medium: 5}   # n shipments per lane
+  # As-of reporting date: shipments whose (shifted) delivery falls after this
+  # are treated as still IN_TRANSIT (goods-in-transit population); on/before it
+  # they are DELIVERED. Lets Phase 3 compute GIT / open accrual realistically.
+  data_as_of_date: "2025-07-01"    # ~3% of shipments still in transit at snapshot
+  invoice_lag_days_range: [3, 15]   # invoice issued this many days after delivery
+
+  # --- Mode imputation for the 360 rows with NULL shipment_mode ------------
+  # Imputed deterministically from the global observed mode mix; flagged.
+  impute_mode_weights: {AIR: 0.62, TRUCK: 0.29, AIR_CHARTER: 0.06, OCEAN: 0.03}
+
+  # --- Product master (SKUs per renewable-energy category) -----------------
+  # unit_weight_kg / unit_value_usd defaults are seeded from the observed
+  # per-unit source distribution (median of weight/qty and value/qty). They
+  # represent nominal pack/carton units, NOT full-panel physical specs.
+  products_per_category: 5
+  product_category_attrs:
+    SOLAR_MODULE:  {uom: PACK, hazmat: false, temp_controlled: false, stackable: true,  hts_prefix: "8541"}
+    INVERTER:      {uom: PACK, hazmat: false, temp_controlled: false, stackable: true,  hts_prefix: "8504"}
+    BATTERY_ESS:   {uom: PACK, hazmat: true,  temp_controlled: true,  stackable: false, hts_prefix: "8507"}
+    BOS_COMPONENT: {uom: PACK, hazmat: false, temp_controlled: false, stackable: true,  hts_prefix: "8544"}
+
+  # --- Rate cards. rate_per_kg base by mode ~ observed median freight/kg;
+  # carriers vary +/-12% deterministically. fuel_percentage is % of base.
+  rate_card:
+    effective_start: "2015-01-01"
+    effective_end:   "2099-12-31"
+    per_kg_base:  {AIR: 9.35, AIR_CHARTER: 3.85, TRUCK: 1.82, OCEAN: 1.62, RAIL: 1.20, MULTIMODAL: 2.50}
+    min_charge:   {AIR: 120, AIR_CHARTER: 900, TRUCK: 150, OCEAN: 800, RAIL: 400, MULTIMODAL: 600}
+    fuel_pct:     {AIR: 0.18, AIR_CHARTER: 0.18, TRUCK: 0.25, OCEAN: 0.12, RAIL: 0.15, MULTIMODAL: 0.15}
+    carrier_rate_spread: 0.12
+    rate_basis_by_mode: {AIR: PER_KG, AIR_CHARTER: PER_KG, TRUCK: PER_KG, OCEAN: PER_KG, RAIL: PER_KG, MULTIMODAL: PER_KG}
+    tax_pct: 0.0                 # freight is typically zero-rated cross-border; kept explicit
+  # Fraction of invoiced amount realized as small rating noise in the CLEAN
+  # baseline (kept well within audit tolerance so baseline audit is clean).
+  invoice_rating_noise_pct: 0.02
+
+  # --- Purchase orders. POs group shipment lines that plausibly share a PO
+  # (same po_so_number where present; else derived per source line).
+  po_number_prefix: "PO-SUN"
+  po_lead_days_before_ship: 21   # PO created ahead of planned ship
+
+  # --- Warehouses (regional DCs; shipments From RDC route through one) ------
+  warehouses:
+    - {warehouse_id: WH01, warehouse_name: "SunGrid West Africa DC",   region: AFRICA,   warehouse_type: DISTRIBUTION_CENTER, capacity_weight_kg: 5000000, capacity_pallets: 8000}
+    - {warehouse_id: WH02, warehouse_name: "SunGrid Southern Africa DC", region: AFRICA, warehouse_type: DISTRIBUTION_CENTER, capacity_weight_kg: 6000000, capacity_pallets: 9000}
+    - {warehouse_id: WH03, warehouse_name: "SunGrid SE Asia DC",       region: ASIA,     warehouse_type: DISTRIBUTION_CENTER, capacity_weight_kg: 4000000, capacity_pallets: 7000}
+    - {warehouse_id: WH04, warehouse_name: "SunGrid Americas DC",      region: AMERICAS, warehouse_type: DISTRIBUTION_CENTER, capacity_weight_kg: 3500000, capacity_pallets: 6000}
+    - {warehouse_id: WH05, warehouse_name: "SunGrid Europe Hub",       region: EUROPE,   warehouse_type: CROSS_DOCK,          capacity_weight_kg: 3000000, capacity_pallets: 5000}
+
+  # --- Milestones. Per-mode ordered templates; day offsets are relative to
+  # actual_ship_date (delivery offset is derived from actual transit). Ranges
+  # are jittered with the per-record seed.
+  milestone_offsets_frac:        # fraction of transit elapsed at each milestone
+    OCEAN:       {BOOKING_CONFIRMED: -0.15, PICKUP_COMPLETED: -0.02, ORIGIN_DEPARTURE: 0.0, EXPORT_CUSTOMS: 0.05, PORT_ARRIVAL: 0.85, IMPORT_CUSTOMS: 0.92, WAREHOUSE_ARRIVAL: 0.97, CUSTOMER_DELIVERY: 1.0, POD_RECEIVED: 1.02}
+    AIR:         {BOOKING_CONFIRMED: -0.30, PICKUP_COMPLETED: -0.05, ORIGIN_DEPARTURE: 0.0, EXPORT_CUSTOMS: 0.10, PORT_ARRIVAL: 0.55, IMPORT_CUSTOMS: 0.75, WAREHOUSE_ARRIVAL: 0.90, CUSTOMER_DELIVERY: 1.0, POD_RECEIVED: 1.05}
+    AIR_CHARTER: {BOOKING_CONFIRMED: -0.30, PICKUP_COMPLETED: -0.05, ORIGIN_DEPARTURE: 0.0, EXPORT_CUSTOMS: 0.10, PORT_ARRIVAL: 0.55, IMPORT_CUSTOMS: 0.75, WAREHOUSE_ARRIVAL: 0.90, CUSTOMER_DELIVERY: 1.0, POD_RECEIVED: 1.05}
+    TRUCK:       {BOOKING_CONFIRMED: -0.25, PICKUP_COMPLETED: -0.02, ORIGIN_DEPARTURE: 0.0, WAREHOUSE_ARRIVAL: 0.80, OUT_FOR_DELIVERY: 0.95, CUSTOMER_DELIVERY: 1.0, POD_RECEIVED: 1.03}
+    RAIL:        {BOOKING_CONFIRMED: -0.20, PICKUP_COMPLETED: -0.02, ORIGIN_DEPARTURE: 0.0, WAREHOUSE_ARRIVAL: 0.85, OUT_FOR_DELIVERY: 0.96, CUSTOMER_DELIVERY: 1.0, POD_RECEIVED: 1.03}
+    MULTIMODAL:  {BOOKING_CONFIRMED: -0.15, PICKUP_COMPLETED: -0.02, ORIGIN_DEPARTURE: 0.0, EXPORT_CUSTOMS: 0.05, PORT_ARRIVAL: 0.80, IMPORT_CUSTOMS: 0.90, WAREHOUSE_ARRIVAL: 0.96, CUSTOMER_DELIVERY: 1.0, POD_RECEIVED: 1.02}
+
+  # --- Accessorial charges (clean baseline: low-frequency, plausible, allowed)
+  accessorial_base_rates:        # probability a shipment incurs each type
+    DEMURRAGE:   {rate: 0.10, modes: [OCEAN, MULTIMODAL], amount_range: [400, 2500]}
+    DETENTION:   {rate: 0.06, modes: [TRUCK, OCEAN, MULTIMODAL], amount_range: [150, 900]}
+    STORAGE:     {rate: 0.05, modes: [OCEAN, TRUCK, MULTIMODAL, AIR], amount_range: [100, 1200]}
+    LIFTGATE:    {rate: 0.08, modes: [TRUCK], amount_range: [45, 180]}
+    CUSTOMS_DOC: {rate: 0.07, modes: [OCEAN, AIR, AIR_CHARTER, MULTIMODAL], amount_range: [60, 350]}
+
+  # --- Claims (legitimate business records; weighted to risk factors) -------
+  claims:
+    base_rate: 0.025
+    late_multiplier: 2.2
+    high_value_multiplier: 1.8    # shipment_value above the 90th percentile
+    partial_multiplier: 1.6
+    ocean_multiplier: 1.4
+    types: [DAMAGE, SHORTAGE, LOSS, DOCUMENTATION, TEMPERATURE_EXCURSION]
+    root_causes: [ROUGH_HANDLING, PORT_CONGESTION, PACKAGING_FAILURE, DOCUMENTATION_ERROR, COLD_CHAIN_BREACH, CARRIER_DELAY]
+    open_fraction: 0.20           # share left open (closed_date null)
+
+  # --- Capacity (monthly per carrier x lane; utilization <=100% in baseline) -
+  capacity_headroom_pct: 0.22     # committed capacity = booked / (1 - headroom*seasonal)
+
+  # --- Invoice approval & payment ------------------------------------------
+  approval:
+    stages: [LOGISTICS_REVIEW, RATE_VALIDATION, FINANCE_APPROVAL, PAYMENT_RELEASE]
+    review_days_range: [1, 12]
+    pending_recent_days: 30       # invoices newer than this may stay pending
+    paid_fraction_of_approved: 0.82
+
+  # --- Accruals -------------------------------------------------------------
+  accrual:
+    month_end_cutoff_lag_days: 5  # invoices arriving within N days after period close still accrue
+

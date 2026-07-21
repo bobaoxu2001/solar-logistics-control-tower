@@ -62,13 +62,58 @@ python src/load_database.py         # DDL + load stg_shipment
 python -m pytest tests/ -q          # 11 tests
 ```
 
+## How to run (Phase 2 — enterprise simulation)
+
+```bash
+python src/run_phase2.py          # full Phase 2, end to end (~8s)
+python -m pytest tests/ -q        # 52 tests (11 Phase 1 + 41 Phase 2)
+```
+
+`run_phase2.py` generates the clean master + fact data, validates the clean
+baseline (aborts on any critical failure), injects controlled exceptions into a
+separate operational layer, loads that layer into the database, refreshes the
+Excel docs, and writes [documentation/phase2_summary.md](documentation/phase2_summary.md).
+It is deterministic and idempotent — re-running produces byte-identical data.
+
 With PostgreSQL instead of SQLite:
 
 ```bash
 docker compose up -d
 export DATABASE_URL=postgresql+psycopg2://sunlog:sunlog_dev_password@localhost:5432/sunlog
-python src/load_database.py
+python src/load_database.py && python src/run_phase2.py
 ```
+
+## What Phase 2 builds
+
+This project combines real public shipment history with deterministically
+simulated ERP, TMS, WMS, carrier-contract, freight-invoice, and finance records.
+Simulated records are used because company rate cards, invoices, purchase
+orders, and settlement data are ordinarily confidential — they are clearly
+labeled `data_class = 'SIMULATED'` and are **not** real company data.
+
+From the 10,324 cleaned shipment lines, Phase 2 derives a full operational
+environment (row counts, clean baseline):
+
+| Layer | Tables (rows) |
+|---|---|
+| Master data | 12 carriers, 785 lanes, 20 products, 73 suppliers, 5 warehouses, 136 locations, 2,311 rate cards |
+| Operational facts | 10,324 shipments · 6,233 purchase orders · 87,046 milestones · 10,012 freight invoices · 22k invoice lines · PODs · claims · 7,200 capacity records · 41k approvals · 10,324 accruals |
+
+Highlights:
+- **Freight calibration is grounded in the real data** — generated freight
+  tracks the observed source freight distribution (all-mode expected/observed
+  ratio ≈ 1.0), so the freight-audit engine in Phase 3 has realistic numbers.
+- **Clean baseline is provably consistent** — 60 internal-consistency checks,
+  **zero critical failures**, before any exception exists.
+- **2,220 controlled exceptions** across 19 types injected into a separate
+  operational layer, each recorded in an exception manifest for Phase 3
+  detection testing. Real lateness is inherited from the source, never injected.
+
+See [documentation/phase2_summary.md](documentation/phase2_summary.md) and
+[documentation/project_architecture.md](documentation/project_architecture.md)
+for the full methodology, and
+[documentation/business_requirements.md](documentation/business_requirements.md)
+for the business framing.
 
 ## Phase 1 findings (real data, verified)
 
@@ -89,8 +134,11 @@ python src/load_database.py
 - [x] **Phase 1 — Foundation:** repo, checksum-verified acquisition, raw
   profile, data dictionary, source-to-target mapping, relational DDL
   (23 tables), staging load, 11 passing tests
-- [ ] **Phase 2 — Enterprise simulation:** master data, POs, rate cards,
-  milestones, invoices, accessorials, controlled exception injection
+- [x] **Phase 2 — Enterprise simulation:** master data, POs, rate cards,
+  milestones, invoices + lines, accessorials, PODs, claims, capacity,
+  approvals, accruals; clean baseline validated (60 checks, 0 critical);
+  2,220 controlled exceptions across 19 types with an exact manifest; 52
+  passing tests; reproducible via `python src/run_phase2.py`
 - [ ] **Phase 3 — Analytics:** DQ rules, KPIs, freight audit, three-way match,
   accruals, carrier scorecard
 - [ ] **Phase 4 — Reporting:** Power BI views + DAX, Excel KPI pack, SOP,
