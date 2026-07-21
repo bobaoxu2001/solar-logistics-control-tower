@@ -1,0 +1,9 @@
+artifact,metric_name,source_table_or_csv,source_query_or_calculation,displayed_value,source_value,match
+monthly_otif_trend.png,Monthly OTIF observations,v_kpi_otif_by_month,COUNT(*),110,110,PASS
+carrier_scorecard.png,Top carrier score,rpt_carrier_scorecard,carrier_rank = 1,68.99,68.99,PASS
+lane_risk_matrix.png,LANE00575 OTIF,rpt_lane_scorecard,lane_id = LANE00575,64.06%,64.06%,PASS
+freight_audit_exposure_waterfall.png,Total modeled exposure,v_audit_recoverable_summary,overcharge + duplicate + accessorial,$2.48M,$2.48M,PASS
+three_way_match_distribution.png,Payment blocks,v_three_way_match,overall_match_status = BLOCK_PAYMENT,219,219,PASS
+accrual_aging.png,Open accrual,v_accrual_summary,open_accrual_balance,$5.10M,$5.10M,PASS
+data_quality_detection_performance.png,Overall recall,rpt_dq_detection_performance,TP / (TP + FN),99.37%,99.37%,PASS
+exception_severity_distribution.png,Detected exceptions,dq_detected_exception,COUNT(*),"4,015","4,015",PASS

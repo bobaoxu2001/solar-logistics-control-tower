@@ -1,204 +1,170 @@
 # Solar Logistics Control Tower & Freight Audit System
 
-End-to-end logistics analytics for **SunGrid Energy Solutions**, a fictional
-global manufacturer of solar modules, inverters, battery energy-storage
-systems, and electrical balance-of-system components.
+A portfolio logistics-control system that combines public shipment history with simulated ERP, TMS, WMS, carrier-contract, freight-settlement, and finance data to demonstrate operational reporting, freight controls, and management decision support.
 
-**Workflow demonstrated:** raw logistics data → validation → relational data
-model → KPI calculations → exception detection → freight audit → management
-reporting → business recommendations.
+> **Data disclosure.** This project combines real public shipment history with deterministically simulated ERP, TMS, WMS, freight-settlement, and finance records. The simulated records represent information that would ordinarily be confidential.
 
-**Skills demonstrated:** SQL, Python, Excel/Power Query, Power BI, logistics
-KPI reporting (OTIF, goods-in-transit, transit time, freight spend), shipment
-milestone tracking, master-data validation, freight invoice auditing,
-three-way matching, accrual and variance reporting, root-cause analysis, and
-SOP development.
+## Key outcomes
 
-> **Data disclosure.** This portfolio project uses public shipment data
-> supplemented with simulated enterprise records. The simulated records
-> represent data that would ordinarily be stored in confidential ERP, TMS,
-> WMS, carrier-contract, and financial systems. The architecture is a
-> relational analytics environment simulating data flows across ERP, TMS,
-> WMS, carrier, customs, and freight-settlement systems — it does not claim
-> professional SAP experience, and none of the data comes from any real
-> company.
+| Shipments analyzed | OTIF | Goods in Transit | Control recall | Critical recall | Modeled financial exposure |
+|---:|---:|---:|---:|---:|---:|
+| **10,324** | **86.88%** | **$32.49M** | **99.37%** | **100%** | **$2.48M** |
 
-## Data sources
+The $2.48M financial-control exposure is modeled within simulated enterprise records. It is not a claim of realized savings or a real-company recovery.
 
-| Layer | Source | Class |
-|---|---|---|
-| Shipment lines (10,324) | USAID *Supply Chain Shipment Pricing Data* (SCMS Delivery History Dataset), public domain. The official portal went offline in 2025; the file is downloaded from public mirrors and **verified against a pinned SHA-256** (`918b992d…`). | PUBLIC |
-| Solar catalog remap, lanes, reporting dates | Deterministic rules documented in `documentation/source_to_target_mapping.xlsx` | DERIVED |
-| Carriers, rate cards, invoices, milestones, PODs, claims, accruals | Seeded Python generation (Phase 2), always derived from the real shipment patterns | SIMULATED |
+**Business capabilities demonstrated:** shipment control tower · OTIF and transit performance · freight invoice audit · three-way matching · accrual reporting · carrier scorecard · data-quality controls · management reporting
 
-The source data records pharmaceutical shipments. Real shipment **patterns**
-(dates, modes, weights, values, freight costs, origins, destinations) are
-preserved; the **product identity** is remapped to a renewable-energy catalog
-(e.g. `ARV|Adult → SOLAR_MODULE`). Every staged row keeps lineage to its
-original record via `source_record_id`, and original product fields are
-retained in `*_raw` columns.
+**Technology:** Python · SQL · PostgreSQL-compatible analytics · SQLite · Power BI · DAX · Excel · openpyxl · pytest
+
+## Executive dashboard preview
+
+![Power BI dashboard design mockup generated from project reporting outputs](dashboard/screenshots/01_executive_overview.png)
+
+The static preview is generated from the same reconciled reporting outputs used by the Excel pack. It is a design mockup—not a fabricated Power BI screenshot or `.pbix` file.
+
+## Business problem
+
+Renewable-energy logistics teams need a unified view of shipment execution, proof of delivery, carrier performance, contractual freight, invoice exceptions, and month-end accruals. In practice, those signals are split across operational and finance systems. This project demonstrates how a Logistics Data Specialist can turn fragmented records into traceable controls and concise management reporting.
+
+The workflow supports three decisions:
+
+1. Which shipments, carriers, and lanes need operational attention?
+2. Which freight invoices can be approved, reviewed, or blocked?
+3. Which data-quality and master-data controls should be corrected first?
 
 ## Architecture
 
-See [documentation/project_architecture.md](documentation/project_architecture.md)
-for the full diagram, ERD (Mermaid), and the Phase 1 assumption log.
+![Project architecture from public shipment source to reporting](documentation/diagrams/project_architecture.png)
 
-- **Database:** PostgreSQL 16 (`docker compose up -d`) or SQLite fallback —
-  selected via `DATABASE_URL` (see `.env.example`)
-- **Pipeline:** Python 3.11, pandas, SQLAlchemy; config-driven
-  (`config/project_config.yaml`), fixed random seed, reproducible end-to-end
-- **Analytics:** SQL views (`sql/`), Power BI specification + DAX, Excel KPI pack
+The pipeline preserves a clean baseline separately from an operational exception layer. Controlled exceptions are injected only after the baseline passes 60 validation checks, then reconciled to a manifest so the detection framework can be measured rather than assumed.
 
-## How to run (Phase 1)
+See [the detailed architecture and assumption log](documentation/project_architecture.md) and [the Power BI data model](dashboard/data_model.md).
+
+## Data source and disclosure
+
+| Layer | Source | Classification |
+|---|---|---|
+| Shipment lines (10,324) | USAID *Supply Chain Shipment Pricing Data* public history, acquired from a mirror and checked against pinned SHA-256 `918b992d…` | PUBLIC |
+| Solar catalog remap, lanes, reporting dates | Deterministic mappings with record-level lineage | DERIVED |
+| Carriers, rates, invoices, milestones, PODs, claims, approvals, accruals | Seeded Python generation derived from shipment patterns | SIMULATED |
+
+The public source originally records pharmaceutical shipments. Dates, modes, weights, values, freight costs, origins, and destinations are retained as shipment patterns; product identity is deterministically remapped to a renewable-energy catalog. Original product fields and `source_record_id` remain available for lineage. No data is presented as coming from a real solar company.
+
+## Analytical modules
+
+| Module | What it answers | Verified output |
+|---|---|---:|
+| Shipment control tower | What is delivered, late, partial, overdue, or still in transit? | 10,012 delivered; 312 GIT |
+| OTIF and transit | Are shipments arriving by plan and in full? | 86.88% OTIF; 5.56 average transit days |
+| Freight audit | Does each invoice reconcile to shipment, rate, fuel, currency, and accessorial evidence? | $428,053.23 modeled overcharge |
+| Three-way match | Can PO, shipment, and invoice proceed to payment? | 219 block-payment decisions |
+| Accrual reporting | What expected freight remains open or uninvoiced? | $5,101,238.49 open accrual |
+| Carrier and lane scorecards | Which partners and lanes need action? | Meridian 68.99/100; LANE00575 highlighted |
+| Data-quality controls | Do the rules detect the controlled truth set? | 99.37% recall; 100% critical recall |
+| Root-cause evidence | Where is deterioration or exposure concentrated? | Three evidence-led cases |
+
+## Freight-audit workflow
+
+![Freight audit workflow from shipment and rate inputs to payment decision](documentation/diagrams/freight_audit_workflow.png)
+
+The expected-charge engine selects an effective carrier-lane rate, enforces the minimum charge, computes fuel, includes only permitted and supported accessorials, and adds tax. Missing or expired rates remain unknown instead of becoming false zero-dollar expectations. Invoice comparison then classifies variance and feeds approve, review, or block decisions.
+
+## Data-quality validation
+
+![Data-quality manifest validation workflow](documentation/diagrams/data_quality_validation.png)
+
+The framework reconciles detected record IDs to 2,220 manifested exceptions by type. It achieved 99.37% overall recall and 100% critical recall. Precision is 54.94% because shared rate-card spillover and overlapping control rules expose additional legitimate issues beyond the injected manifest; those detections are not hidden or forced into the truth set.
+
+## Root-cause findings
+
+1. **Monthly OTIF deterioration:** OTIF fell from 90.14% to 44.44%, a 45.70-percentage-point change, with 29 late shipments and $7.28M of late shipment value in the affected month.
+2. **Freight invoice concentration:** 32 VoltLine Express Air invoice rows account for $739,720.91 of modeled exposure, primarily duplicate-payment risk.
+3. **Shared rate-card control:** 1,839 high-severity detections concentrate in expired shared rate cards; all 124 altered cards are detected, while invoice-level recall is 92% because 12 selected invoices shipped before the shared card expiry.
+
+Recommended actions are documented in the [project case study](documentation/project_case_study.md) and [Logistics Data SOP](documentation/logistics_data_sop.md).
+
+## Dashboard gallery
+
+| Shipment control tower | Carrier and lane performance |
+|---|---|
+| ![Shipment control tower mockup](dashboard/screenshots/02_shipment_control_tower.png) | ![Carrier and lane performance mockup](dashboard/screenshots/03_carrier_lane_performance.png) |
+| Freight audit | Finance and accrual |
+| ![Freight audit mockup](dashboard/screenshots/04_freight_audit.png) | ![Finance and accrual mockup](dashboard/screenshots/05_finance_accrual.png) |
+| Data quality and controls | Executive overview |
+| ![Data quality and controls mockup](dashboard/screenshots/06_data_quality_controls.png) | ![Executive overview mockup](dashboard/screenshots/01_executive_overview.png) |
+
+All six images are labeled **Power BI dashboard design mockup generated from project reporting outputs** and reconcile through [the dashboard metric ledger](dashboard/dashboard_metric_reconciliation.csv). The manually buildable Power BI contract is in [the dashboard specification](dashboard/dashboard_specification.md), [build instructions](dashboard/build_instructions.md), and [DAX measures](dashboard/measures.dax).
+
+## Excel reporting
+
+The [10-sheet Excel KPI pack](excel/logistics_kpi_pack.xlsx) provides an Executive Summary, shipment exceptions, carrier and lane scorecards, freight audit, three-way matching, accruals, open claims, data quality, and metric definitions. Filters, freeze panes, number formats, conditional formatting, and visible disclosure were validated across every sheet.
+
+See [the KPI pack validation report](excel/kpi_pack_validation.md) for worksheet sources, reconciliation checks, refresh steps, and limitations.
+
+## Testing and reproducibility
+
+- Phase 1 clean-source controls, Phase 2 enterprise simulation, and Phase 3 analytics remain covered by the original 100 tests.
+- Phase 3 passes 26/26 analytical and reporting validation gates.
+- Phase 4 adds checks for local README links, dashboard and chart files, metric reconciliation, workbook structure and values, disclosure coverage, and generation idempotency.
+- Two Phase 3 completion runs produced identical hashes across 23 analytical/reporting CSV outputs.
+- Phase 4 images, reconciliation ledgers, diagrams, and generated validation documents are deterministic and hash-verifiable.
+
+## How to run
+
+Install the Python dependencies and optionally choose PostgreSQL; SQLite is the default:
 
 ```bash
-python -m pip install -r requirements.txt
-cp .env.example .env                # optional; defaults to SQLite
-
-python src/download_data.py         # acquire + checksum-verify source data
-python src/profile_data.py          # raw profile, data dictionary, STM workbook
-python src/clean_shipments.py       # staging transform + reject ledger
-python src/load_database.py         # DDL + load stg_shipment
-python -m pytest tests/ -q          # 11 tests
+python3 -m pip install -r requirements.txt
+cp .env.example .env  # optional
 ```
 
-## How to run (Phase 2 — enterprise simulation)
+Run the full data and analytics pipeline:
 
 ```bash
-python src/run_phase2.py          # full Phase 2, end to end (~8s)
-python -m pytest tests/ -q        # 52 tests (11 Phase 1 + 41 Phase 2)
+python3 src/download_data.py
+python3 src/profile_data.py
+python3 src/clean_shipments.py
+python3 src/load_database.py
+python3 src/run_phase2.py
+python3 src/run_phase3.py
 ```
 
-`run_phase2.py` generates the clean master + fact data, validates the clean
-baseline (aborts on any critical failure), injects controlled exceptions into a
-separate operational layer, loads that layer into the database, refreshes the
-Excel docs, and writes [documentation/phase2_summary.md](documentation/phase2_summary.md).
-It is deterministic and idempotent — re-running produces byte-identical data.
+Regenerate and validate the portfolio-presentation layer:
 
-With PostgreSQL instead of SQLite:
+```bash
+python3 src/run_phase4.py
+python3 -m pytest tests/ -q
+```
+
+With PostgreSQL:
 
 ```bash
 docker compose up -d
 export DATABASE_URL=postgresql+psycopg2://sunlog:sunlog_dev_password@localhost:5432/sunlog
-python src/load_database.py && python src/run_phase2.py
-```
-
-## How to run (Phase 3 — analytics, controls, and reporting)
-
-```bash
-python src/run_phase3.py         # end-to-end Phase 3 (~25s on the SQLite demo)
-python -m pytest tests/ -q       # 100 tests (52 Phase 1–2 + 48 Phase 3)
-```
-
-`run_phase3.py` validates the Phase 1–2 prerequisites, builds the portable KPI
-base, applies data-quality and freight-audit SQL, reconciles detections to the
-manifest, generates carrier/lane scorecards and evidence-led case studies,
-exports the Power BI reporting layer, refreshes the Excel KPI pack and
-documentation, and stops on a failed critical validation. It is deterministic,
-idempotent, and safe to rerun.
-
-Verified Phase 3 results at the `2025-07-01` reporting snapshot:
-
-- **10,324 shipments**, **10,012 delivered**, **312 GIT**; OTIF **86.88%**,
-  on-time **88.56%**, in-full **98.00%**.
-- **4,015 detections** reconciled to a **2,220-record** injected manifest:
-  **99.37% overall recall** and **100% critical recall**.
-- **$428,053.23 modeled recoverable overcharge**, **$1,999,642.11 duplicate
-  invoice exposure**, and **$50,145.64 unauthorized/excessive accessorial
-  recovery**. These are simulated control exposures, not realized savings.
-- Three-way match: **7,275 matched**, **155 matched with warning**, **2,233
-  review required**, **219 payment blocks**, and **60 missing records**.
-- Reconciled Power BI star-schema views/DAX and a populated
-  [`excel/logistics_kpi_pack.xlsx`](excel/logistics_kpi_pack.xlsx) with ten
-  operational and management-reporting sheets. No fabricated `.pbix` is
-  included.
-
-See [`documentation/phase3_summary.md`](documentation/phase3_summary.md),
-[`documentation/logistics_data_sop.md`](documentation/logistics_data_sop.md),
-and [`dashboard/dashboard_specification.md`](dashboard/dashboard_specification.md).
-
-## What Phase 2 builds
-
-This project combines real public shipment history with deterministically
-simulated ERP, TMS, WMS, carrier-contract, freight-invoice, and finance records.
-Simulated records are used because company rate cards, invoices, purchase
-orders, and settlement data are ordinarily confidential — they are clearly
-labeled `data_class = 'SIMULATED'` and are **not** real company data.
-
-From the 10,324 cleaned shipment lines, Phase 2 derives a full operational
-environment (row counts, clean baseline):
-
-| Layer | Tables (rows) |
-|---|---|
-| Master data | 12 carriers, 785 lanes, 20 products, 73 suppliers, 5 warehouses, 136 locations, 2,311 rate cards |
-| Operational facts | 10,324 shipments · 6,233 purchase orders · 87,046 milestones · 10,012 freight invoices · 22k invoice lines · PODs · claims · 7,200 capacity records · 41k approvals · 10,324 accruals |
-
-Highlights:
-- **Freight calibration is grounded in the real data** — generated freight
-  tracks the observed source freight distribution (all-mode expected/observed
-  ratio ≈ 1.0), so the freight-audit engine in Phase 3 has realistic numbers.
-- **Clean baseline is provably consistent** — 60 internal-consistency checks,
-  **zero critical failures**, before any exception exists.
-- **2,220 controlled exceptions** across 19 types injected into a separate
-  operational layer, each recorded in an exception manifest for Phase 3
-  detection testing. Real lateness is inherited from the source, never injected.
-
-See [documentation/phase2_summary.md](documentation/phase2_summary.md) and
-[documentation/project_architecture.md](documentation/project_architecture.md)
-for the full methodology, and
-[documentation/business_requirements.md](documentation/business_requirements.md)
-for the business framing.
-
-## Phase 1 findings (real data, verified)
-
-- 10,324 shipment lines, 43 destination countries, 88 origin manufacturing
-  sites, 73 vendors; modes Air 59%, Truck 27%, Air Charter 6%, Ocean 4%,
-  missing 3.5%.
-- 2,445 lines record weight/freight as a cross-reference to another line
-  (`See DN-xxxx (ID#:yyyy)`); resolving these lifted weight coverage from
-  61.7% to 84.2% and freight-cost coverage from 60.0% to 82.7%.
-- Remaining gaps are structural, not random: *Weight Captured Separately*
-  (1,507), *Freight Included in Commodity Cost* (1,442), *Invoiced
-  Separately* (239) — each kept as an explicit provenance flag.
-- 0 rows rejected by hard validation; the reject ledger exists and is loaded
-  (empty) so the control exists before it is needed.
-
-## Progress
-
-- [x] **Phase 1 — Foundation:** repo, checksum-verified acquisition, raw
-  profile, data dictionary, source-to-target mapping, relational DDL
-  (23 tables), staging load, 11 passing tests
-- [x] **Phase 2 — Enterprise simulation:** master data, POs, rate cards,
-  milestones, invoices + lines, accessorials, PODs, claims, capacity,
-  approvals, accruals; clean baseline validated (60 checks, 0 critical);
-  2,220 controlled exceptions across 19 types with an exact manifest; 52
-  passing tests; reproducible via `python src/run_phase2.py`
-- [x] **Phase 3 — Analytics:** 25 DQ rules, KPI views, freight audit,
-  three-way match, accruals, carrier/lane scorecards, and root-cause evidence
-- [x] **Phase 4 — Reporting:** Power BI semantic views + DAX, ten-sheet Excel
-  KPI pack, operating SOP, and recruiter-facing documentation
-- [x] **Phase 5 — QA:** SQL/manifest/report/Excel reconciliation, 26 pipeline
-  validation gates, and 100 passing tests
-
-## Repository map
-
-```
-config/          project + exception-injection configuration (YAML)
-data/            raw / interim / processed / samples (gitignored except samples)
-documentation/   architecture, data dictionary, STM mapping, SOP (Phase 4)
-sql/             DDL + analytics SQL (01–03 shipped in Phase 1)
-src/             pipeline scripts (download → profile → clean → load)
-tests/           pytest suite
-dashboard/       Power BI specification (Phase 4)
-excel/           Excel KPI pack (Phase 4)
+python3 src/load_database.py
+python3 src/run_phase2.py
+python3 src/run_phase3.py
+python3 src/run_phase4.py
 ```
 
 ## Limitations
 
-- Source shipment lines are pharmaceutical-program deliveries adapted into a
-  solar case study; absolute weights/values are real, product identity is not.
-- Carrier, invoice, and milestone records are simulated (clearly labeled
-  `data_class = 'SIMULATED'`); audit findings quantify detection of
-  *controlled, documented* exceptions, not real billing errors.
-- No ship-date column exists in the source; `ship_date` is derived in
-  Phase 2 from mode-standard transit times and labeled as such.
+- Public-source pharmaceutical shipment patterns are adapted to a disclosed solar scenario; product identity is derived rather than observed.
+- Carrier, contract, milestone, invoice, POD, claim, approval, and finance records are deterministic simulations.
+- Financial findings are modeled control exposures, not real billing errors, realized recovery, approved budget, or production deployment.
+- The 312-record GIT snapshot is intentionally retained; modeled future departures receive zero age rather than negative age.
+- Expired-rate invoice recall remains about 92% because 12 selected invoices shipped before the single altered expiry of a shared card.
+- SQLite is live-tested. PostgreSQL-compatible SQL has been hardened but was not executed against a live PostgreSQL server in this environment.
+- Static dashboard images are source-backed design mockups. Power BI Desktop assembly, interactive filtering, accessibility review, refresh credentials, and publication remain manual work. No `.pbix` is fabricated.
+
+## Interview materials
+
+- [Two-minute recruiter walkthrough](documentation/recruiter_walkthrough.md)
+- [Five-minute professional case study](documentation/project_case_study.md)
+- [8–10 minute interview demo script](documentation/interview_demo_script.md)
+- [Seven-slide presentation outline](documentation/presentation_outline.md)
+- [Interview answers, resume bullets, and STAR stories](documentation/interview_materials.md)
+- [Standalone interview chart gallery and source map](documentation/chart_source_map.md)
+- [Phase 4 completion summary](documentation/phase4_summary.md)
+
+The recommended ten-minute path is: data disclosure → architecture → Executive Overview → Freight Audit → Data Quality → Carrier/Lane → recommendations → limitations and production roadmap.

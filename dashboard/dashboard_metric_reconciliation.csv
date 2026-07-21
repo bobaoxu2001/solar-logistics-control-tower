@@ -1,0 +1,32 @@
+artifact,metric_name,source_table_or_csv,source_query_or_calculation,displayed_value,source_value,match
+01_executive_overview.png,Total shipments,v_kpi_otif_summary,shipment_count,"10,324","10,324",PASS
+01_executive_overview.png,OTIF,v_kpi_otif_summary,otif_pct,86.88%,86.88%,PASS
+01_executive_overview.png,On-time,v_kpi_otif_summary,on_time_pct,88.56%,88.56%,PASS
+01_executive_overview.png,In-full,v_kpi_otif_summary,in_full_pct,98.00%,98.00%,PASS
+01_executive_overview.png,GIT value,v_kpi_git_summary,git_value_usd,$32.49M,$32.49M,PASS
+01_executive_overview.png,Modeled financial exposure,v_audit_recoverable_summary,overcharge + duplicate + accessorial,$2.48M,$2.48M,PASS
+01_executive_overview.png,Open accrual,v_accrual_summary,open_accrual_balance,$5.10M,$5.10M,PASS
+01_executive_overview.png,Critical recall,rpt_dq_detection_performance,critical TP / (TP + FN),100.00%,100.00%,PASS
+02_shipment_control_tower.png,Delivered shipments,v_kpi_otif_summary,delivered_count,"10,012","10,012",PASS
+02_shipment_control_tower.png,Goods in transit,v_kpi_git_summary,git_shipment_count,312,312,PASS
+02_shipment_control_tower.png,Overdue GIT,v_kpi_git_summary,overdue_git_count,5,5,PASS
+02_shipment_control_tower.png,GIT value at risk,v_kpi_git_summary,git_value_usd,$32.49M,$32.49M,PASS
+03_carrier_lane_performance.png,Top carrier,rpt_carrier_scorecard,carrier_rank = 1,Meridian Freight Forwarders,Meridian Freight Forwarders,PASS
+03_carrier_lane_performance.png,Top carrier score,rpt_carrier_scorecard,total_score where carrier_rank = 1,68.99/100,68.99/100,PASS
+03_carrier_lane_performance.png,LANE00575 OTIF,rpt_lane_scorecard,lane_id = LANE00575,64.06%,64.06%,PASS
+03_carrier_lane_performance.png,Insufficient-volume lanes,rpt_lane_scorecard,insufficient_volume_flag = 1,648,648,PASS
+04_freight_audit.png,Matched invoices,v_freight_audit,audit_status = MATCHED,"7,496","7,496",PASS
+04_freight_audit.png,Recoverable overcharge,v_audit_recoverable_summary,overcharge_recoverable,"$428,053.23","$428,053.23",PASS
+04_freight_audit.png,Duplicate exposure,v_audit_recoverable_summary,duplicate_invoice_exposure,$2.00M,$2.00M,PASS
+04_freight_audit.png,Accessorial exposure,v_audit_recoverable_summary,accessorial_recoverable,"$50,145.64","$50,145.64",PASS
+04_freight_audit.png,Payment-block candidates,v_three_way_match,overall_match_status = BLOCK_PAYMENT,219,219,PASS
+05_finance_accrual.png,Open accrual,v_accrual_summary,open_accrual_balance,$5.10M,$5.10M,PASS
+05_finance_accrual.png,Accrual variance,v_accrual_summary,total_accrual_variance,"$750,473.42","$750,473.42",PASS
+05_finance_accrual.png,Uninvoiced shipments,v_accrual_summary,uninvoiced_shipment_count,316,316,PASS
+05_finance_accrual.png,Released accruals,v_accrual_summary,released_count,"9,952","9,952",PASS
+06_data_quality_controls.png,Detected exceptions,dq_detected_exception,COUNT(*),"4,015","4,015",PASS
+06_data_quality_controls.png,Manifested exceptions,rpt_dq_detection_performance,SUM(manifest_count),"2,220","2,220",PASS
+06_data_quality_controls.png,Precision,rpt_dq_detection_performance,TP / (TP + FP),54.94%,54.94%,PASS
+06_data_quality_controls.png,Recall,rpt_dq_detection_performance,TP / (TP + FN),99.37%,99.37%,PASS
+06_data_quality_controls.png,Critical recall,rpt_dq_detection_performance,critical TP / (TP + FN),100.00%,100.00%,PASS
+06_data_quality_controls.png,Data-quality score,dq_detected_exception + severity weights,1 - weighted open / (shipments * 10),82.77%,82.77%,PASS

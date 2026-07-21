@@ -1,0 +1,12 @@
+flowchart LR
+    A[Shipment] --> F[Expected charge]
+    B[Carrier] --> F
+    C[Lane] --> F
+    D[Rate card] --> F
+    E[Accessorial documentation] --> F
+    F --> G[Invoice comparison]
+    G --> H[Variance classification]
+    H --> I{Payment decision}
+    I --> J[Approve]
+    I --> K[Review]
+    I --> L[Block payment]
